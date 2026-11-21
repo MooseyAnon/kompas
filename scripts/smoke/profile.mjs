@@ -114,6 +114,10 @@ async function reviewCv(page) {
   await selectModel(page, 'mock-cv');
   await openDestination(page, 'profile');
   await page.getByRole('tab', { name: 'Documents', exact: true }).click();
+  await confirmCv(page, 'Profile smoke');
+}
+
+async function confirmCv(page, originalName) {
   await page.getByRole('button', { name: 'Choose file', exact: true }).click();
   const proposal = page.getByRole('textbox', {
     name: 'Proposed displayName',
@@ -122,7 +126,7 @@ async function reviewCv(page) {
   await visible(proposal);
   assert.equal(
     (await call(page, 'identity', 'profile.get')).profile.displayName,
-    'Profile smoke',
+    originalName,
   );
   await proposal.fill('UI-reviewed CV Tester');
   await page.getByRole('checkbox', { name: /^Confirm displayName/ }).check();
@@ -146,23 +150,94 @@ async function beginOnboarding(page, route) {
     false,
   );
   await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await visible(
+    page.getByRole('heading', { name: 'Workspace readiness', exact: true }),
+  );
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await page.getByRole('button', { name: route, exact: true }).click();
+}
+
+async function checkInitialReadiness(page) {
+  await visible(
+    page.getByRole('heading', {
+      name: 'Your next chapter starts here',
+      exact: true,
+    }),
+  );
+  await checkViewports(
+    page,
+    page.getByRole('button', { name: 'Get started', exact: true }),
+  );
+  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await visible(
+    page.getByRole('heading', { name: 'Workspace readiness', exact: true }),
+  );
+  await checkViewports(
+    page,
+    page.getByRole('button', { name: 'Configure local AI', exact: true }),
+  );
+  await page
+    .getByRole('button', { name: 'Configure local AI', exact: true })
+    .click();
+  await visible(page.getByTestId('settings-view-local-ai'));
+  await page
+    .getByRole('button', { name: 'Back to setup', exact: true })
+    .click();
+  await visible(
+    page.getByRole('heading', { name: 'Workspace readiness', exact: true }),
+  );
+}
+
+async function enterWithoutModel(page) {
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await contains(page.getByRole('status'), 'CV parsing requires');
+  assert.equal(
+    await page
+      .getByRole('button', { name: 'Import a CV', exact: true })
+      .isEnabled(),
+    false,
+  );
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await beginOnboarding(page, 'Enter manually');
+  await editProfile(page, 'Onboarding fixture');
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await addTargets(page, ['Analyst', 'Writer']);
+}
+
+async function configureCvFixture(page) {
+  await page.getByRole('button', { name: 'Get started', exact: true }).click();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Configure local AI', exact: true })
+    .click();
+  await visible(page.getByTestId('settings-view-local-ai'));
+  // Use the IPC fixture so this smoke never needs installed Ollama models.
+  await selectModel(page, 'mock-cv');
+  await page
+    .getByRole('button', { name: 'Back to setup', exact: true })
+    .click();
+  await contains(page.getByRole('status'), 'ready for CV parsing');
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  const modelCard = page
+    .getByRole('heading', { name: 'Local model', exact: true })
+    .locator('..');
+  await contains(modelCard, 'Ready');
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
 }
 
 export async function onboardingSmoke(harness) {
   let session = await harness.launch({ onboarding: true });
 
-  await harness.step('first run supports manual identity entry', async () => {
-    const { page } = session;
-    await checkViewports(
-      page,
-      page.getByRole('button', { name: 'Get started', exact: true }),
-    );
-    await beginOnboarding(page, 'Enter manually');
-    await editProfile(page, 'Onboarding fixture');
-    await page.getByRole('button', { name: 'Continue', exact: true }).click();
-    await addTargets(page, ['Analyst', 'Writer']);
-  });
+  await harness.step(
+    'welcome precedes model setup and Settings returns to readiness',
+    () => checkInitialReadiness(session.page),
+  );
+
+  await harness.step(
+    'missing model blocks CV but permits manual identity entry',
+    () => enterWithoutModel(session.page),
+  );
 
   await harness.step(
     'unfinished setup retains edits and explicit skip persists',
@@ -194,21 +269,28 @@ export async function onboardingSmoke(harness) {
   );
 
   await harness.step(
-    'CV route and optional steps finish without fabricating facts',
+    'configured model parses a CV and only confirmed facts reach the workspace',
     async () => {
-      session = await harness.launch({ onboarding: true });
+      const pickFile = await writePdf(
+        harness.temporaryDirectory('onboarding-cv'),
+      );
+      session = await harness.launch({ onboarding: true, pickFile });
       const { page } = session;
+      await configureCvFixture(page);
       await beginOnboarding(page, 'Import a CV');
       await visible(page.getByTestId('profile-view-documents'));
+      await confirmCv(page, '');
       await page.getByRole('button', { name: 'Continue', exact: true }).click();
       await visible(page.getByTestId('profile-view-targets'));
       await page
         .getByRole('button', { name: 'Skip for now', exact: true })
         .click();
       await visible(
-        page.getByRole('heading', { name: 'Workspace readiness', exact: true }),
+        page.getByRole('heading', {
+          name: 'Enter your workspace',
+          exact: true,
+        }),
       );
-      await page.getByRole('button', { name: 'Continue', exact: true }).click();
       await page
         .getByRole('button', { name: 'Open my workspace', exact: true })
         .click();
@@ -217,7 +299,7 @@ export async function onboardingSmoke(harness) {
         (await call(page, 'system', 'onboarding.status.get')).completed,
         true,
       );
-      await assertIdentity(page, '', []);
+      await assertIdentity(page, 'UI-reviewed CV Tester', []);
     },
   );
 }

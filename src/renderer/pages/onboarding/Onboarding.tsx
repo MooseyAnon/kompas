@@ -4,9 +4,6 @@ import {
   audioSttProvidersList,
   completeOnboarding,
   getInferenceSettings,
-  getProfile,
-  listConfirmedSkills,
-  listTargets,
   webListBrowsers,
 } from '../../api';
 import { Button } from '../../presentation/components/Button';
@@ -16,52 +13,73 @@ import { ProfilePage } from '../profile/ProfilePage';
 import { SettingsPage } from '../settings/SettingsPage';
 import './Onboarding.css';
 
-const headings = [
-  'Your next chapter starts here',
-  'Build your profile',
-  'Review your profile',
-  'Where would you like to go next?',
-  'Workspace readiness',
-  'Enter your workspace',
-];
+const steps = [
+  { id: 'welcome', heading: 'Your next chapter starts here' },
+  { id: 'readiness', heading: 'Workspace readiness' },
+  { id: 'profile-choice', heading: 'Build your profile' },
+  { id: 'profile-edit', heading: 'Review your profile' },
+  { id: 'targets', heading: 'Where would you like to go next?' },
+  { id: 'finish', heading: 'Enter your workspace' },
+] as const;
+
+type Step = (typeof steps)[number]['id'];
+type ModelStatus = 'Checking…' | 'Ready' | 'Needs setup' | 'Unknown / error';
 type Readiness = { label: string; status: string; settings?: boolean };
 
+function hasSelectedLocalModel(
+  result: Awaited<ReturnType<typeof getInferenceSettings>>,
+): boolean {
+  const { settings, resolvedModel } = result;
+
+  return Boolean(
+    settings.modelId &&
+    resolvedModel?.installed &&
+    resolvedModel.locality === 'local' &&
+    resolvedModel.id === settings.modelId &&
+    resolvedModel.providerId === settings.providerId,
+  );
+}
+
 export function Onboarding({ onComplete }: { onComplete: () => void }) {
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState<Step>(steps[0].id);
   const [path, setPath] = useState<'cv' | 'manual' | null>(null);
   const [settings, setSettings] = useState(false);
   const [readiness, setReadiness] = useState<Readiness[]>([]);
+  const [modelStatus, setModelStatus] = useState<ModelStatus>('Checking…');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const title = useRef<HTMLHeadingElement>(null);
+  const stepIndex = steps.findIndex((item) => item.id === step);
 
   useEffect(() => {
     title.current?.focus();
   }, [step, settings]);
   useEffect(() => {
-    if (step !== 4 || settings) return;
+    if (settings || (step !== 'readiness' && step !== 'profile-choice')) return;
+    let active = true;
+
+    setModelStatus('Checking…');
+    void getInferenceSettings()
+      .then((result) => {
+        if (active) {
+          setModelStatus(
+            hasSelectedLocalModel(result) ? 'Ready' : 'Needs setup',
+          );
+        }
+      })
+      .catch(() => {
+        if (active) setModelStatus('Unknown / error');
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [step, settings]);
+
+  useEffect(() => {
+    if (step !== 'readiness' || settings) return;
     let active = true;
     const checks: Array<[string, Promise<string>, boolean]> = [
-      [
-        'Profile',
-        Promise.all([getProfile(), listConfirmedSkills(), listTargets()]).then(
-          ([p, skills, targets]) =>
-            p.displayName || p.currentRole || skills.length || targets.length
-              ? 'Ready'
-              : 'Needs setup',
-        ),
-        false,
-      ],
-      [
-        'Local model',
-        getInferenceSettings().then((result) =>
-          result.resolvedModel?.installed &&
-          result.resolvedModel.locality === 'local'
-            ? 'Ready'
-            : 'Needs setup',
-        ),
-        true,
-      ],
       [
         'Browser',
         webListBrowsers().then((result) =>
@@ -129,11 +147,30 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
       setBusy(false);
     }
   }
-  function go(next: number) {
+  function go(next: Step) {
     setError('');
     setSettings(false);
     setStep(next);
   }
+
+  async function beginCv() {
+    setModelStatus('Checking…');
+    setError('');
+
+    try {
+      const ready = hasSelectedLocalModel(await getInferenceSettings());
+      setModelStatus(ready ? 'Ready' : 'Needs setup');
+
+      if (!ready) return;
+
+      setPath('cv');
+      go('profile-edit');
+    } catch {
+      setModelStatus('Unknown / error');
+      setError('Could not check the selected model. Open Settings to retry.');
+    }
+  }
+
   function navigate(destination: Destination) {
     if (destination === 'settings') setSettings(true);
   }
@@ -144,45 +181,57 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
       <div className="onboarding-drag" aria-hidden="true" />
       <main className="onboarding-panel">
         <div className="onboarding-top">
-          <span>CAREER WORKSPACE · {step + 1} / 6</span>
+          <span>
+            CAREER WORKSPACE · {stepIndex + 1} / {steps.length}
+          </span>
           <Button variant="ghost" disabled={busy} onClick={() => void finish()}>
             Skip onboarding
           </Button>
         </div>
         <h1 ref={title} tabIndex={-1}>
-          {settings ? 'Settings' : headings[step]}
+          {settings ? 'Settings' : steps[stepIndex].heading}
         </h1>
         <div className="onboarding-body" key={`${step}-${settings}`}>
           {settings ? (
             <>
-              <p>Configure optional capabilities, then return to your setup.</p>
+              <p>
+                Select an installed local model for CV parsing, then return to
+                your setup. Browser and voice capabilities are optional.
+              </p>
               <div className="onboarding-settings">
                 <SettingsPage />
               </div>
             </>
           ) : (
             <>
-              {step === 0 && (
+              {step === 'welcome' && (
                 <Card>
                   <p>
                     Set up your career space at your own pace. You can edit your
                     Profile any time.
                   </p>
-                  <Button onClick={() => go(1)}>Get started</Button>
+                  <Button onClick={() => go(steps[stepIndex + 1].id)}>
+                    Get started
+                  </Button>
                 </Card>
               )}
-              {step === 1 && (
+              {step === 'profile-choice' && (
                 <Card>
                   <p>
                     Import a CV to review suggestions, or start with your own
                     words. Neither requires a complete profile.
                   </p>
+                  <p role="status">
+                    {modelStatus === 'Ready'
+                      ? 'Your selected local model is ready for CV parsing.'
+                      : modelStatus === 'Checking…'
+                        ? 'Checking your selected local model…'
+                        : 'CV parsing requires a selected, installed local model. Configure Local AI or enter your profile manually.'}
+                  </p>
                   <div className="profile-actions">
                     <Button
-                      onClick={() => {
-                        setPath('cv');
-                        go(2);
-                      }}
+                      disabled={modelStatus !== 'Ready'}
+                      onClick={() => void beginCv()}
                     >
                       Import a CV
                     </Button>
@@ -190,15 +239,21 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
                       variant="secondary"
                       onClick={() => {
                         setPath('manual');
-                        go(2);
+                        go('profile-edit');
                       }}
                     >
                       Enter manually
                     </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setSettings(true)}
+                    >
+                      Configure local AI
+                    </Button>
                   </div>
                 </Card>
               )}
-              {step === 2 && (
+              {step === 'profile-edit' && (
                 <>
                   <p>
                     {path === 'cv'
@@ -221,7 +276,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
                   />
                 </>
               )}
-              {step === 3 && (
+              {step === 'targets' && (
                 <>
                   <p>
                     Target roles are separate from your current role. Add more
@@ -234,13 +289,22 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
                   />
                 </>
               )}
-              {step === 4 && (
+              {step === 'readiness' && (
                 <>
                   <p>
-                    These checks are optional. You can use your workspace
-                    without a model, browser or microphone.
+                    Configure and select a local model before importing your CV.
+                    CV parsing requires a selected, installed local model. You
+                    can continue without one to enter your profile manually.
+                    Browser and voice setup are optional.
                   </p>
+                  <Button onClick={() => setSettings(true)}>
+                    Configure local AI
+                  </Button>
                   <div className="onboarding-tiles">
+                    <Card variant="subtle">
+                      <h2>Local model</h2>
+                      <p role="status">{modelStatus}</p>
+                    </Card>
                     {readiness.map((item) => (
                       <Card key={item.label} variant="subtle">
                         <h2>{item.label}</h2>
@@ -266,7 +330,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
                   </Button>
                 </>
               )}
-              {step === 5 && (
+              {step === 'finish' && (
                 <Card>
                   <p>
                     Your workspace is ready to explore. You can return to
@@ -288,18 +352,25 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
             </Button>
           ) : (
             <>
-              {step > 0 && (
-                <Button variant="secondary" onClick={() => go(step - 1)}>
+              {stepIndex > 0 && (
+                <Button
+                  variant="secondary"
+                  onClick={() => go(steps[stepIndex - 1].id)}
+                >
                   Back
                 </Button>
               )}
-              {step === 3 && (
-                <Button variant="ghost" onClick={() => go(4)}>
+              {step === 'targets' && (
+                <Button variant="ghost" onClick={() => go('finish')}>
                   Skip for now
                 </Button>
               )}
-              {step > 1 && step < 5 && (
-                <Button onClick={() => go(step + 1)}>Continue</Button>
+              {(step === 'readiness' ||
+                step === 'profile-edit' ||
+                step === 'targets') && (
+                <Button onClick={() => go(steps[stepIndex + 1].id)}>
+                  Continue
+                </Button>
               )}
             </>
           )}

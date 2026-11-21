@@ -182,7 +182,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
       <main className="onboarding-panel">
         <div className="onboarding-top">
           <span>
-            CAREER WORKSPACE · {stepIndex + 1} / {steps.length}
+            KOMPAS · {stepIndex + 1} / {steps.length}
           </span>
           <Button variant="ghost" disabled={busy} onClick={() => void finish()}>
             Skip onboarding

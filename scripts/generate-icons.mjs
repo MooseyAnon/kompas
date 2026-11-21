@@ -22,7 +22,7 @@ try {
           '-z',
           String(pixels),
           String(pixels),
-          path.join(branding, 'kompas-flower-mascot.png'),
+          path.join(branding, 'updated-logo.png'),
           '--out',
           path.join(iconset, `icon_${size}x${size}${suffix}.png`),
         ],

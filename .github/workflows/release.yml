@@ -80,6 +80,9 @@ jobs:
         run: npm run make:signed
         env:
           KOMPAS_SIGN_IDENTITY: ${{ secrets.KOMPAS_SIGN_IDENTITY }}
+          GH_TOKEN: ${{ github.token }}
+          KOMPAS_RELEASE_REPOSITORY: ${{ vars.KOMPAS_RELEASE_REPOSITORY }}
+          KOMPAS_RELEASE_COMMIT: ${{ vars.KOMPAS_RELEASE_COMMIT }}
 
       - name: Verify artifacts and create or reuse tag draft (never publish)
         run: npm run release

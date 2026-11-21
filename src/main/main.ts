@@ -1,4 +1,16 @@
-import { app, BrowserWindow, dialog, ipcMain, session, shell } from 'electron';
+import {
+  app,
+  autoUpdater,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  Menu,
+  MenuItem,
+  session,
+  shell,
+} from 'electron';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import fs from 'node:fs';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
@@ -16,6 +28,7 @@ import {
 import { AppError } from './ipc/errors';
 import { resolveDataDir, resolveStorageLayout } from './core/paths';
 import { preserveStorageIdentity } from './core/app-identity';
+import { AppUpdates } from './core/app-updates';
 import { ProviderManager } from './modules/inference/provider-manager';
 import { WorkerSupervisor } from './modules/inference/worker-supervisor';
 import { UtilityProcessTransport } from './modules/inference/utility-transport';
@@ -63,6 +76,7 @@ const WORKER_STATUS_TIMEOUT_MS = 6_000;
 
 const DEV_SERVER_URL = MAIN_WINDOW_VITE_DEV_SERVER_URL ?? undefined;
 const IS_DEV = Boolean(DEV_SERVER_URL);
+declare const KOMPAS_UPDATE_REPOSITORY: string | null;
 
 // Electron previously derived this from productName (already "Kompas"). Pin
 // it independently of future display branding; retain explicit smoke profiles.
@@ -87,6 +101,10 @@ let activeRequests = 0;
 let inferenceService: InferenceService | null = null;
 let webService: ReturnType<typeof createDefaultWebService> | null = null;
 let webShutdownStarted = false;
+let quitShutdown: Promise<void> | null = null;
+let quitRequested = false;
+let updateRestartPending = false;
+let appUpdates: AppUpdates | null = null;
 
 let resetPending = false;
 let resetBootFailed = false;
@@ -308,11 +326,11 @@ function registerIpc(): void {
       return buildFailure(coerceCorrelationId(raw), 'INTERNAL');
     }
 
-    if (resetPending) {
+    if (resetPending || updateRestartPending) {
       return buildFailure(
         coerceCorrelationId(raw),
         'CONFLICT',
-        'Application data is being reset. Wait for the restart.',
+        'The application is restarting. Please wait.',
       );
     }
 
@@ -346,6 +364,7 @@ async function startReset(): Promise<void> {
   }
 
   resetPending = true;
+  appUpdates?.dispose();
 
   try {
     // The reset request itself must remain active. Keep the wait inline so an
@@ -611,6 +630,7 @@ function startApplication(): void {
   installMediaPermissionHandlers();
   registerIpc();
   createWindow();
+  startUpdates(telemetry);
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -619,19 +639,115 @@ function startApplication(): void {
   });
 }
 
+function updateRestartBlocked(): boolean {
+  return (
+    resetPending ||
+    webShutdownStarted ||
+    quitShutdown !== null ||
+    activeRequests > 0 ||
+    busyChecks.some((check) => check())
+  );
+}
+
+function shutdownServices(): Promise<void> {
+  quitShutdown ??= (async () => {
+    await webService?.shutdown();
+    await inferenceService?.stop();
+    webShutdownStarted = true;
+  })();
+  return quitShutdown;
+}
+
+function startUpdates(telemetry: TelemetryService): void {
+  appUpdates = new AppUpdates({
+    packaged: app.isPackaged,
+    platform: process.platform,
+    arch: process.arch,
+    testing:
+      IS_DEV ||
+      process.env.CAREER_SMOKE === '1' ||
+      process.env.NODE_ENV === 'test' ||
+      Boolean(process.env.VITEST),
+    repository: KOMPAS_UPDATE_REPOSITORY,
+    version: app.getVersion(),
+    verifySignature: async () => {
+      const bundle = path.resolve(process.resourcesPath, '../..');
+      await promisify(execFile)(
+        'codesign',
+        [
+          '--verify',
+          '--deep',
+          '--strict',
+          '-R',
+          '=anchor apple generic and certificate leaf[field.1.2.840.113635.100.6.1.13] exists and identifier "com.kompas.kompas"',
+          bundle,
+        ],
+        { timeout: 10_000 },
+      );
+    },
+    updater: autoUpdater,
+    telemetry,
+    isBusy: updateRestartBlocked,
+    prompt: async () => {
+      const blocked = updateRestartBlocked();
+      const result = await dialog.showMessageBox({
+        type: 'info',
+        title: 'Kompas update',
+        message: 'A new version of Kompas is ready.',
+        detail: blocked
+          ? 'Finish active work or recording, then choose Install Downloaded ' +
+            'Update from the Kompas menu.'
+          : 'Restart to install the update. Your local data will be kept. ' +
+            'Choose Later to keep working.',
+        buttons: blocked ? ['Later'] : ['Restart', 'Later'],
+        defaultId: blocked ? 0 : 1,
+        cancelId: blocked ? 0 : 1,
+        noLink: true,
+      });
+      return blocked ? 1 : result.response;
+    },
+    prepareInstall: async () => {
+      if (updateRestartBlocked()) throw new Error('Active work');
+      updateRestartPending = true;
+      try {
+        await shutdownServices();
+      } catch (error) {
+        updateRestartPending = false;
+        throw error;
+      }
+    },
+    onReady: () => {
+      const applicationMenu = Menu.getApplicationMenu()?.items[0]?.submenu;
+      applicationMenu?.append(
+        new MenuItem({
+          label: 'Install Downloaded Update…',
+          click: () => {
+            void appUpdates?.promptToInstall();
+          },
+        }),
+      );
+    },
+  });
+  void appUpdates.start();
+}
+
 app.whenReady().then(startApplication);
 
 app.on('before-quit', (event) => {
+  appUpdates?.dispose();
   if (!webService || webShutdownStarted) {
     return;
   }
 
   event.preventDefault();
-  webShutdownStarted = true;
-  void webService
-    .shutdown()
+  if (quitRequested) return;
+  quitRequested = true;
+  void shutdownServices()
     .catch(() => {})
-    .finally(() => app.quit());
+    .finally(() => {
+      webShutdownStarted = true;
+      app.quit();
+    });
 });
 
 app.on('will-quit', () => {

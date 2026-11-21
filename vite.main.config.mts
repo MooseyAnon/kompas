@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { updateBuildRepository } from './scripts/update-build-config.mjs';
 
 // https://vitejs.dev/config
 // Native/driver-bearing dependencies must not be bundled; they are required
@@ -8,6 +9,9 @@ import { defineConfig } from 'vite';
 //    loaded from node_modules, not Rollup-bundled. No browser is bundled; it
 //    drives an installed Chrome/Edge via launch channels.
 export default defineConfig({
+  define: {
+    KOMPAS_UPDATE_REPOSITORY: JSON.stringify(updateBuildRepository()),
+  },
   build: {
     rollupOptions: {
       external: [

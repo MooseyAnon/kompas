@@ -1,0 +1,14 @@
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: linear-gradient(115deg, #fbeee3, #edf3fa);
+  color: var(--text-primary);
+  font-family: var(--font-family-body);
+}
+/* Stands in for the shell's bounded main area; the Meadow is not rendered. */
+.quick-fire-fixture {
+  box-sizing: border-box;
+  display: flex;
+  height: 100vh;
+  padding: 28px clamp(16px, 5vw, 72px) 24px;
+}

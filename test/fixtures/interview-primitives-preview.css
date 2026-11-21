@@ -1,0 +1,28 @@
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: linear-gradient(115deg, #fbeee3, #edf3fa);
+  color: var(--text-primary);
+  font-family: var(--font-family-body);
+}
+.primitives-fixture {
+  width: min(100% - 32px, 900px);
+  margin: 24px auto;
+}
+.primitives-fixture .ui-card {
+  display: grid;
+  gap: 12px;
+}
+.primitives-fixture-caption {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-family-label);
+  font-size: 0.72rem;
+}
+.primitives-fixture-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}

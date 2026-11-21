@@ -1,0 +1,115 @@
+.interview-recording {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 10px;
+  border: 1.5px solid var(--error);
+  border-radius: var(--radius-small);
+  background: #fdf3f1;
+}
+.interview-recording-badge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--error);
+  color: #fff;
+}
+.interview-recording-ring {
+  position: absolute;
+  inset: -5px;
+  border: 2px solid var(--error);
+  border-radius: 50%;
+  opacity: 0;
+  animation: interview-recording-ring 1.6s ease-out infinite;
+}
+.interview-recording-badge svg {
+  animation: interview-recording-bounce 1.6s ease-in-out infinite;
+}
+.interview-recording.is-stopping .interview-recording-ring,
+.interview-recording.is-stopping .interview-recording-badge svg {
+  animation: none;
+}
+.interview-recording-copy {
+  display: grid;
+  min-width: 0;
+}
+.interview-recording-label {
+  color: var(--error);
+  font-family: var(--font-family-label);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.interview-recording-time {
+  font-family: var(--font-family-label);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+.interview-recording-levels {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 28px;
+  flex: 1 1 60px;
+  max-width: 160px;
+  min-width: 48px;
+}
+.interview-recording-levels span {
+  flex: 1;
+  min-height: 3px;
+  border-radius: 2px;
+  background: var(--error);
+  opacity: 0.75;
+  transition: height 90ms linear;
+}
+.interview-recording-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.interview-recording-actions .ui-button {
+  padding: 6px 12px;
+  font-size: 0.82rem;
+}
+.interview-recording-actions .ui-button svg {
+  width: 16px;
+  height: 16px;
+}
+.interview-recording-actions .ui-button-primary {
+  border-color: var(--error);
+  background: var(--error);
+  color: #fff;
+}
+@keyframes interview-recording-ring {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+@keyframes interview-recording-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .interview-recording *,
+  .interview-recording *::before {
+    animation-duration: 0.00001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.00001s !important;
+  }
+}

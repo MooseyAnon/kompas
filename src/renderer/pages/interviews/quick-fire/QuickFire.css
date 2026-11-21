@@ -1,0 +1,95 @@
+.quick-fire-runner,
+.quick-fire-results {
+  display: grid;
+  gap: 12px;
+}
+.quick-fire-answering {
+  display: grid;
+  gap: 10px;
+}
+/* Short but wide windows: question beside the composer keeps Submit in view. */
+@media (min-width: 980px) and (max-height: 700px) {
+  .quick-fire-answering {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: start;
+  }
+  .quick-fire-answering > :not(.interview-question-card, .interview-composer) {
+    grid-column: 1 / -1;
+  }
+}
+.quick-fire-saved {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  color: var(--accent-ink);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.quick-fire-inline-alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--error);
+  border-radius: var(--radius-small);
+  background: #fbefee;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+}
+.quick-fire-inline-alert > svg {
+  flex: none;
+  color: var(--error);
+}
+.quick-fire-inline-alert > span {
+  flex: 1 1 220px;
+}
+.quick-fire-inline-alert .ui-button {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+.quick-fire-breakdown {
+  display: grid;
+  gap: 8px;
+}
+.quick-fire-breakdown h3 {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.quick-fire-breakdown-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.quick-fire-round-details {
+  display: grid;
+  gap: 8px;
+  padding-top: 6px;
+}
+.quick-fire-round-answer h4 {
+  margin: 0 0 2px;
+  font-family: var(--font-family-label);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.quick-fire-round-answer p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.quick-fire-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

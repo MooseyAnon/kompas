@@ -1,0 +1,118 @@
+.shell {
+  position: relative;
+  min-height: 100vh;
+  overflow: clip;
+  isolation: isolate;
+}
+.shell-home .meadow {
+  position: fixed;
+}
+.shell-header {
+  position: relative;
+  z-index: 2;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+}
+.shell-mac .shell-header {
+  padding-left: 90px;
+}
+.shell-windows .shell-header {
+  padding-right: 152px;
+}
+.shell-drag {
+  flex: 1;
+  height: 100%;
+  app-region: drag;
+}
+.shell-trigger {
+  app-region: no-drag;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  padding: 7px 11px;
+  font-size: var(--font-small);
+  font-weight: var(--weight-medium);
+  box-shadow: 0 2px 12px #35273d10;
+  transition:
+    background var(--motion-fast),
+    transform var(--motion-fast);
+}
+.shell-trigger:hover {
+  background: var(--accent-soft);
+}
+.shell-shortcut {
+  color: var(--text-muted);
+  margin-left: 6px;
+}
+.shell-content {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 1000px);
+  margin: 0 auto;
+  padding: clamp(54px, 12vh, 130px) clamp(24px, 6vw, 80px) 110px;
+}
+.shell-content-home {
+  width: min(100%, 1380px);
+  padding: clamp(78px, 15vh, 150px) clamp(30px, 7vw, 125px) 185px;
+}
+.shell-workspace {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.shell-workspace .meadow {
+  position: fixed;
+}
+.shell-content-workspace {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  width: min(100%, 1440px);
+  padding: 4px clamp(24px, 5vw, 72px) 24px;
+}
+.shell-content > * {
+  animation: page-arrive var(--motion-page) ease-out both;
+}
+.shell-content.shell-content-workspace > * {
+  /* A transformed ancestor would trap the fixed reset dialog in the workspace. */
+  animation: none;
+}
+.shell-companion {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  pointer-events: none;
+}
+@keyframes page-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 1100px) {
+  .shell-content-home {
+    padding: 88px clamp(24px, 5vw, 65px) 150px;
+  }
+}
+@media (max-width: 800px), (max-height: 610px) {
+  .shell-content-home {
+    padding: 36px 24px 120px;
+  }
+}
+@media (max-height: 610px) {
+  .shell-content-workspace {
+    padding-bottom: 12px;
+  }
+}

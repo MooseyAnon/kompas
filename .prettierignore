@@ -1,0 +1,14 @@
+# Frozen specification pack — do not reformat authoritative inputs.
+*.md
+specs/
+prompts/
+protocol/
+handoffs/
+migrations/
+.agent/
+
+# Build output and dependencies
+.vite/
+out/
+node_modules/
+package-lock.json

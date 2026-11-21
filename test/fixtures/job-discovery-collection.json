@@ -1,0 +1,94 @@
+{
+  "fixtureVersion": 1,
+  "provenance": "Reduced shape from user-supplied readPage examples (2026-11-03); URLs/links used for parsing tests only.",
+  "linkedin": {
+    "schemaVersion": 1,
+    "url": "https://uk.linkedin.com/jobs/engineering-internship-jobs-london?position=1&pageNum=0",
+    "title": "Engineering Internship Jobs in London (816 Open Roles) | LinkedIn",
+    "truncated": false,
+    "content": {
+      "blocks": [
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            {
+              "text": "Industrial Placement Student – Highways and Streets – London/St. Albans (2027 start) Industrial Placement Student – Highways and Streets – London/St. Albans (2027 start) AECOM London, England, United Kingdom Be an early applicant 4 days ago",
+              "links": [
+                {
+                  "text": "Industrial Placement Student – Highways and Streets – London/St. Albans (2027 start)",
+                  "href": "https://uk.linkedin.com/jobs/view/industrial-placement-student-%E2%80%93-highways-and-streets-%E2%80%93-london-st-albans-2027-start-at-aecom-4484584282?position=42&pageNum=0&trackingId=abc"
+                },
+                {
+                  "text": "AECOM",
+                  "href": "https://www.linkedin.com/company/aecom?trk=public_jobs_jserp-result_job-search-card-subtitle"
+                }
+              ]
+            },
+            {
+              "text": "Engineering Intern (London, Summer 2027) Engineering Intern (London, Summer 2027) Hiya Inc. London, England, United Kingdom 1 week ago",
+              "links": [
+                {
+                  "text": "Engineering Intern (London, Summer 2027)",
+                  "href": "https://uk.linkedin.com/jobs/view/engineering-intern-london-summer-2027-at-hiya-inc-4483717324?position=2&pageNum=0&trackingId=abc"
+                },
+                {
+                  "text": "Hiya Inc.",
+                  "href": "https://www.linkedin.com/company/hiyainc"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "indeed": {
+    "schemaVersion": 1,
+    "url": "https://uk.indeed.com/q-internship-2027-engineering-jobs.html?vjk=1b7308819da55652",
+    "title": "Internship 2027 Engineering Jobs (with Salaries) | Indeed United Kingdom",
+    "content": {
+      "blocks": [
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            {
+              "text": "Industrial Placement Student – Highways and Streets – London/St. Albans (2027 start)AECOMHybrid work in London",
+              "links": [
+                {
+                  "text": "Industrial Placement Student – Highways and Streets – London/St. Albans (2027 start)",
+                  "href": "/rc/clk?jk=84ead4a76a3bfd70&bb=irrelevant&vjs=3"
+                }
+              ]
+            },
+            {
+              "text": "Industrial Placement Student – Bridge Structures - Cambridge (2027 Start)AECOMHybrid work in Cambridge",
+              "links": [
+                {
+                  "text": "Industrial Placement Student – Bridge Structures - Cambridge (2027 Start)",
+                  "href": "/rc/clk?jk=2e7d21c004076123&bb=irrelevant&vjs=3"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "ordered": false,
+          "items": [
+            {
+              "text": "Salary Search: Industrial Placement Student salaries",
+              "links": [
+                {
+                  "text": "salaries",
+                  "href": "/career/salaries/somewhere"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

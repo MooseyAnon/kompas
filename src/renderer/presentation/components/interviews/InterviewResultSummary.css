@@ -1,0 +1,104 @@
+.interview-result-summary {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  gap: 10px;
+  padding: var(--space-3) var(--space-3) calc(var(--space-3) + 22px);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-large);
+  background:
+    radial-gradient(circle at 100% 0%, #fbeee3 0, transparent 45%),
+    linear-gradient(180deg, var(--surface) 0%, #f3f5e6 100%);
+  box-shadow: var(--card-shadow);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+.interview-result-summary > * {
+  position: relative;
+  z-index: 1;
+}
+.interview-result-summary > .meadow-card-corner {
+  position: absolute;
+  z-index: 0;
+}
+.interview-result-score {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+}
+.interview-result-score-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  background: var(--surface-raised);
+  color: var(--accent-ink);
+}
+.interview-result-score-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.interview-result-score-copy h2 {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.interview-result-score-value {
+  margin: 0;
+  color: var(--accent-ink);
+  font-family: var(--font-family-display);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.interview-result-score-value span {
+  color: var(--text-muted);
+  font-family: var(--font-family-label);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.interview-result-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+.interview-result-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.interview-result-counts:empty {
+  display: none;
+}
+.interview-result-narrative {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px 16px;
+  /* Clear the decorative corner. */
+  padding-right: min(10%, 60px);
+}
+.interview-result-unavailable {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--radius-small);
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+.interview-result-unavailable svg {
+  flex: none;
+  margin-top: 2px;
+}

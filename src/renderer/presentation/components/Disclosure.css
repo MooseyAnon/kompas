@@ -1,0 +1,36 @@
+.ui-disclosure {
+  min-width: 0;
+  border-top: 1px solid var(--border);
+}
+.ui-disclosure-summary {
+  app-region: no-drag;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  color: var(--text-primary);
+  cursor: pointer;
+  list-style: none;
+}
+.ui-disclosure-summary::-webkit-details-marker {
+  display: none;
+}
+.ui-disclosure-summary svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  transition: transform var(--motion-fast);
+}
+.ui-disclosure[open] > .ui-disclosure-summary svg {
+  transform: rotate(180deg);
+}
+.ui-disclosure-content {
+  padding-bottom: var(--space-3);
+  color: var(--text-muted);
+}
+.ui-disclosure-summary:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+  border-radius: var(--radius-small);
+}

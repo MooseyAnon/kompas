@@ -1,0 +1,53 @@
+.deep-loop-conversation {
+  box-sizing: border-box;
+  min-height: 130px;
+  max-height: clamp(180px, 43vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 4px 8px 12px 2px;
+  scrollbar-gutter: stable;
+}
+.deep-loop-round {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.deep-loop-round-label {
+  margin: 6px 0 0;
+  font-family: var(--font-family-label);
+  font-size: 0.73rem;
+  color: var(--text-muted);
+}
+.deep-loop-answer {
+  justify-self: end;
+  width: min(88%, 670px);
+  min-width: 0;
+  padding: 12px 16px;
+  border: 1px solid var(--accent);
+  border-radius: 16px 16px 4px 16px;
+  background: var(--accent-soft);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.deep-loop-answer-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--accent-ink);
+}
+.deep-loop-answer p {
+  margin: 6px 0 0;
+  line-height: 1.5;
+}
+.deep-loop-round .interview-feedback {
+  max-width: 92%;
+}
+@media (max-height: 610px) {
+  .deep-loop-conversation {
+    max-height: max(150px, 32vh);
+  }
+}

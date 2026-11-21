@@ -1,0 +1,131 @@
+.history-tab {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  font-size: 0.85rem;
+}
+.history-tab > .ui-button {
+  justify-self: start;
+}
+.history-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: var(--space-3);
+}
+.history-heading h2,
+.history-detail h2 {
+  margin: 0;
+  font-family: var(--font-family-display);
+}
+.history-heading p,
+.history-detail > p {
+  margin: 0;
+  color: var(--text-muted);
+}
+.history-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-2);
+}
+.history-filters label {
+  display: grid;
+  gap: 4px;
+  font-family: var(--font-family-label);
+  font-size: var(--font-small);
+}
+.history-filters select {
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  font-family: var(--font-family-body);
+}
+.history-filters select:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+.history-filters span {
+  color: var(--text-muted);
+  font-size: var(--font-small);
+}
+.history-list,
+.history-rounds {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.history-method {
+  flex: none;
+  color: var(--text-muted);
+}
+.history-row-main {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.history-row-main span {
+  color: var(--text-muted);
+  font-size: var(--font-small);
+}
+.history-state {
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.history-score {
+  min-width: 5.5rem;
+  text-align: right;
+  font-family: var(--font-family-label);
+}
+.history-row-actions {
+  display: flex;
+  gap: 4px;
+}
+.history-row-actions .ui-button {
+  white-space: nowrap;
+}
+.history-detail {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.history-turn {
+  overflow-wrap: anywhere;
+}
+.history-turn p {
+  white-space: pre-wrap;
+}
+.history-notice {
+  color: var(--text-muted);
+}
+@media (max-width: 940px) {
+  .history-row {
+    flex-wrap: wrap;
+  }
+  .history-row-main {
+    flex-basis: calc(100% - 3rem);
+  }
+  .history-row-actions {
+    margin-left: auto;
+  }
+}
+@media (max-width: 600px) {
+  .history-row-actions {
+    width: 100%;
+  }
+  .history-row-actions .ui-button {
+    flex: 1;
+  }
+}

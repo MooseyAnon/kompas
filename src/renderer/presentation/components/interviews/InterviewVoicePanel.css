@@ -1,0 +1,50 @@
+.interview-voice {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.interview-voice.is-idle {
+  display: flex;
+}
+.interview-voice .ui-button {
+  padding: 8px 14px;
+  font-size: 0.84rem;
+}
+.interview-voice .ui-button svg {
+  width: 18px;
+  height: 18px;
+}
+.interview-voice-note,
+.interview-voice-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+.interview-voice-note svg,
+.interview-voice-error svg {
+  flex: none;
+  margin-top: 2px;
+}
+.interview-voice-note {
+  color: var(--text-muted);
+}
+.interview-voice-error {
+  padding: 8px 10px;
+  border: 1px solid var(--error);
+  border-radius: var(--radius-small);
+  background: #fbefee;
+  color: var(--error);
+  font-weight: 600;
+}
+.interview-voice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.interview-voice-player {
+  width: min(100%, 360px);
+  height: 36px;
+}

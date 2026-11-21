@@ -1,0 +1,51 @@
+.meadow-card-corner {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  user-select: none;
+}
+.meadow-card-corner svg,
+.meadow-card-corner img {
+  position: absolute;
+  pointer-events: none;
+}
+.meadow-card-corner svg {
+  width: 135px;
+  height: 70px;
+  bottom: 0;
+  right: 0;
+  opacity: 0.72;
+}
+.meadow-card-corner img {
+  object-fit: contain;
+}
+.meadow-card-grass {
+  width: 49px;
+  right: -8px;
+  bottom: -12px;
+}
+.meadow-card-white {
+  width: 47px;
+  right: 17px;
+  bottom: -13px;
+}
+.meadow-card-corner-floral svg {
+  width: 168px;
+  height: 85px;
+}
+.meadow-card-corner-floral .meadow-card-white {
+  right: 90px;
+}
+.meadow-card-yellow {
+  width: 55px;
+  right: 40px;
+  bottom: -14px;
+}
+.meadow-card-purple {
+  width: 58px;
+  right: -14px;
+  bottom: -14px;
+}

@@ -1,0 +1,67 @@
+.deep-loop-runner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.deep-loop-runner > .interview-session-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface-raised);
+}
+.deep-loop-composer,
+.deep-loop-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--surface-raised);
+}
+.deep-loop-composer {
+  padding-top: 6px;
+}
+.deep-loop-actions {
+  padding: 4px 0;
+}
+.deep-loop-inline-status {
+  max-width: 620px;
+}
+.deep-loop-recommendation {
+  margin: 2px 0;
+  padding: 10px;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+}
+.deep-loop-history-error {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--error);
+}
+@media (max-width: 700px) {
+  .deep-loop-composer .interview-composer-input {
+    min-height: 3.5em;
+    height: 3.5em;
+  }
+}
+@media (max-height: 610px) {
+  .deep-loop-runner {
+    gap: 5px;
+  }
+  .deep-loop-conversation {
+    min-height: 118px;
+    max-height: 130px;
+  }
+  .deep-loop-composer .interview-composer-input {
+    min-height: 2.5em;
+    height: 2.5em;
+  }
+  .deep-loop-runner .interview-session-bar-actions .ui-button {
+    padding: 5px 8px;
+    font-size: 0.74rem;
+  }
+  .deep-loop-composer {
+    padding-top: 2px;
+  }
+}

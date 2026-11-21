@@ -1,0 +1,39 @@
+.interview-progress {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  min-width: 0;
+}
+.interview-progress-label {
+  font-family: var(--font-family-label);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+.interview-progress-dots {
+  display: flex;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.interview-progress-dots li {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  background: var(--surface-raised);
+}
+.interview-progress-dots li.is-done {
+  background: var(--accent);
+}
+.interview-progress-dots li.is-current {
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.interview-progress-detail {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+}

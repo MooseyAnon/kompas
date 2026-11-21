@@ -1,0 +1,109 @@
+.interview-feedback {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+  background: var(--surface);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+.interview-feedback.is-review {
+  background: linear-gradient(180deg, var(--surface) 0%, #f6f1f9 100%);
+}
+.interview-feedback.is-coaching {
+  background: linear-gradient(180deg, var(--surface) 0%, #fbf3e3 100%);
+}
+.interview-feedback-avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ece4f3;
+  color: var(--focus-ring);
+}
+.is-coaching .interview-feedback-avatar {
+  background: #fbe9c8;
+  color: var(--warning);
+}
+.interview-feedback-body {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.interview-feedback-body p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.interview-feedback-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+.interview-feedback-header h3 {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.interview-feedback-score {
+  font-family: var(--font-family-label);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+.interview-feedback-meta,
+.interview-feedback-note {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+}
+.interview-feedback-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px 16px;
+}
+.interview-feedback-list h4 {
+  margin: 0 0 2px;
+  font-family: var(--font-family-label);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.interview-feedback-list ul,
+.interview-feedback-criteria {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 1.1em;
+}
+.interview-feedback-criteria {
+  padding-left: 0;
+  list-style: none;
+}
+.interview-criterion-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 10px;
+}
+.interview-criterion-head span {
+  color: var(--text-muted);
+  font-family: var(--font-family-label);
+  font-size: 0.72rem;
+}
+.interview-feedback-focus {
+  padding: 6px 10px;
+  border-left: 3px solid var(--warning);
+  border-radius: var(--radius-small);
+  background: var(--surface-raised);
+}
+.interview-feedback-example {
+  white-space: pre-wrap;
+}
+.interview-feedback-more {
+  font-size: 0.8rem;
+}

@@ -1,0 +1,77 @@
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 480 190"
+  fill="none"
+>
+  <defs>
+    <!-- Main cream-to-lavender gradient -->
+    <linearGradient id="cloud-gradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFF9F0" />
+      <stop offset="42%" stop-color="#FFF1EE" />
+      <stop offset="75%" stop-color="#F6E4F0" />
+      <stop offset="100%" stop-color="#E9D9F4" />
+    </linearGradient>
+
+    <!-- Warm highlight on the upper clouds -->
+    <radialGradient id="cloud-highlight">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Slightly soften the edges -->
+    <filter id="cloud-soften" x="-10%" y="-15%" width="120%" height="130%">
+      <feGaussianBlur stdDeviation="1.2" />
+    </filter>
+  </defs>
+
+  <!-- Main illustrated cloud silhouette -->
+  <g filter="url(#cloud-soften)">
+    <path
+      d="
+        M 38 151
+        C 17 151, 12 133, 25 121
+        C 34 112, 45 112, 56 116
+        C 53 96, 70 79, 91 81
+        C 105 81, 115 87, 122 97
+        C 129 70, 152 54, 181 57
+        C 190 25, 219 9, 250 15
+        C 271 18, 286 31, 294 49
+        C 317 40, 343 52, 354 74
+        C 377 67, 400 82, 405 105
+        C 421 102, 441 113, 443 131
+        C 446 146, 432 153, 413 153
+        C 347 155, 288 151, 226 154
+        C 159 152, 98 156, 38 151
+        Z
+      "
+      fill="url(#cloud-gradient)"
+    />
+  </g>
+
+  <!-- Soft light across the upper centre -->
+  <ellipse
+    cx="242"
+    cy="67"
+    rx="115"
+    ry="66"
+    fill="url(#cloud-highlight)"
+    opacity="0.65"
+  />
+
+  <!-- Subtle lavender volume near the bottom -->
+  <path
+    d="
+      M 107 132
+      C 137 115, 156 128, 178 119
+      C 199 103, 226 109, 241 124
+      C 264 109, 293 117, 307 133
+      C 338 123, 361 130, 377 145
+      C 287 150, 190 150, 107 146
+      Z
+    "
+    fill="#E8D7F2"
+    opacity="0.22"
+    filter="url(#cloud-soften)"
+  />
+</svg>

@@ -1,0 +1,48 @@
+.interview-action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+.interview-action-main,
+.interview-action-trailing,
+.interview-action-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.interview-action-bar .ui-button {
+  padding: 8px 14px;
+  font-size: 0.84rem;
+}
+.interview-action-bar .ui-button svg {
+  width: 18px;
+  height: 18px;
+}
+.interview-action-text {
+  display: grid;
+  text-align: left;
+}
+.interview-action-description {
+  color: inherit;
+  font-size: 0.7rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+.interview-action-bar .ui-button.has-description {
+  padding-block: 6px;
+}
+.interview-action-confirm span {
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.interview-action-bar .ui-button.is-destructive {
+  border-color: var(--error);
+  color: var(--error);
+}
+.interview-action-bar .ui-button.is-destructive:hover:not(:disabled) {
+  background: #fbefee;
+}

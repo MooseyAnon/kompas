@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-10-27T17:42:46.287Z",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "engine": {
+    "id": "whisper.cpp",
+    "repository": "https://github.com/ggml-org/whisper.cpp",
+    "tag": "v1.9.5",
+    "commit": "d1be6fde11ac6e0407606b4e42fe72d34add8037",
+    "executable": "bin/whisper-cli",
+    "executableSha256": "7695ccae6ac1e22bbffecbd69a27226da6f6236e88e7111c0903a5283f92f702",
+    "executableBytes": 2499256,
+    "buildFlags": [
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DBUILD_SHARED_LIBS=OFF",
+      "-DGGML_METAL=OFF",
+      "-DGGML_ACCELERATE=ON",
+      "-DWHISPER_BUILD_TESTS=OFF",
+      "-DWHISPER_BUILD_EXAMPLES=ON",
+      "-DWHISPER_BUILD_SERVER=OFF"
+    ],
+    "runtime": "cpu",
+    "dynamicLibraries": [
+      "/usr/lib/libSystem.B.dylib",
+      "/System/Library/Frameworks/Accelerate.framework/Versions/A/Accelerate",
+      "/usr/lib/libc++.1.dylib"
+    ],
+    "license": "MIT",
+    "licenseNotice": "whisper.cpp is distributed under the MIT License (c) 2023-2024 The ggml authors."
+  },
+  "model": {
+    "id": "whisper-base-multilingual",
+    "file": "models/ggml-base.bin",
+    "variant": "base",
+    "multilingual": true,
+    "source": "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin",
+    "sha256": "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe",
+    "bytes": 147951465,
+    "license": "MIT",
+    "licenseNotice": "Whisper models are released by OpenAI under the MIT License; ggml conversions by the whisper.cpp authors."
+  }
+}

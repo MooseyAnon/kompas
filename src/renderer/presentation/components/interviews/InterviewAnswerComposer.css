@@ -1,0 +1,114 @@
+.interview-composer {
+  display: grid;
+  gap: 8px;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+  background: var(--surface-raised);
+}
+.interview-composer-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+.interview-composer-head label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-family-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.interview-composer-hint {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+}
+.interview-composer-draft {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  color: var(--text-muted);
+  font-family: var(--font-family-label);
+  font-size: 0.7rem;
+}
+.interview-composer-draft.is-saved {
+  color: var(--success);
+}
+.interview-composer-draft.is-error {
+  color: var(--warning);
+}
+.interview-composer-input {
+  width: 100%;
+  min-height: 7.5em;
+  max-height: 40vh;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: var(--font-family-body);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+.interview-composer-input:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+.interview-composer-input[aria-invalid='true'] {
+  border-color: var(--error);
+}
+.interview-composer-error {
+  margin: 0;
+  color: var(--error);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.interview-composer-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 12px;
+}
+.interview-composer-voice {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+.interview-composer-submit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+.interview-composer-submit .ui-button {
+  padding: 8px 16px;
+  font-size: 0.86rem;
+}
+.interview-composer-submit .ui-button svg {
+  width: 18px;
+  height: 18px;
+}
+.interview-composer-count {
+  color: var(--text-muted);
+  font-family: var(--font-family-label);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+}
+.interview-composer-count.is-over {
+  color: var(--error);
+  font-weight: 600;
+}
+@media (max-height: 610px) {
+  .interview-composer {
+    gap: 6px;
+    padding: var(--space-2);
+  }
+  /* `rows` would otherwise keep the taller intrinsic height; still resizable. */
+  .interview-composer-input {
+    min-height: 4.5em;
+    height: 4.5em;
+  }
+}

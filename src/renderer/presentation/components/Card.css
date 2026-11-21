@@ -1,0 +1,59 @@
+.ui-card {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+  color: var(--text-primary);
+  /* Overflow remains visible for focus rings, menus and composed decorations. */
+  overflow: visible;
+}
+.ui-card-regular {
+  padding: var(--space-4);
+}
+.ui-card-compact {
+  padding: var(--space-3);
+}
+.ui-card-default {
+  background: var(--surface-raised);
+  box-shadow: var(--card-shadow);
+}
+.ui-card-subtle {
+  background: var(--surface);
+  box-shadow: none;
+}
+.ui-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.ui-card-interactive {
+  app-region: no-drag;
+  display: block;
+  width: 100%;
+  background: var(--surface-raised);
+  box-shadow: var(--card-shadow);
+  font: inherit;
+  text-align: left;
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+.ui-card-subtle .ui-card-interactive {
+  box-shadow: none;
+}
+.ui-card-interactive:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: var(--accent);
+}
+.ui-card-interactive.ui-card-selected,
+.ui-card-interactive.ui-card-selected:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.ui-card-interactive:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

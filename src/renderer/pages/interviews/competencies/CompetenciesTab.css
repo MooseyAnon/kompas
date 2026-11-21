@@ -1,0 +1,108 @@
+.competencies-tab,
+.competency-progress {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-3);
+  font-size: 0.85rem;
+}
+.competencies-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: var(--space-3);
+}
+.competencies-heading h2,
+.competencies-tab h3 {
+  font-family: var(--font-family-display);
+  margin: 0;
+}
+.competencies-heading p,
+.competency-progress p,
+.competencies-tab section > p {
+  margin: 0;
+  color: var(--text-muted);
+}
+.competencies-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-2);
+}
+.competencies-filters label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  font-family: var(--font-family-label);
+  font-size: var(--font-small);
+}
+.competencies-filters input {
+  width: min(100%, 19rem);
+}
+.competencies-filters input,
+.competencies-filters select {
+  box-sizing: border-box;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  font-family: var(--font-family-body);
+  font-size: 0.82rem;
+  max-width: 100%;
+}
+.competencies-filters :is(input, select):focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+.competency-cohort {
+  font-weight: 700;
+}
+.competency-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+.competency-stats .ui-card {
+  display: grid;
+  gap: 4px;
+}
+.competency-stats strong {
+  font-size: 1.15rem;
+}
+.competency-stats span {
+  color: var(--text-muted);
+  font-size: var(--font-small);
+}
+.competency-chart {
+  width: 100%;
+  height: 200px;
+}
+.competency-points,
+.competencies-questions {
+  display: grid;
+  gap: var(--space-2);
+  padding-left: 1.25rem;
+}
+.competency-points li,
+.competencies-questions li {
+  overflow-wrap: anywhere;
+}
+.competency-points .ui-button {
+  margin-left: var(--space-2);
+  padding: 5px 10px;
+  font-size: 0.78rem;
+}
+@media (max-width: 840px) {
+  .competency-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 540px) {
+  .competency-stats {
+    grid-template-columns: 1fr;
+  }
+  .competencies-heading {
+    flex-wrap: wrap;
+  }
+}

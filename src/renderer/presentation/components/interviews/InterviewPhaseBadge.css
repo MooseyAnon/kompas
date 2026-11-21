@@ -1,0 +1,40 @@
+.interview-phase-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  font-family: var(--font-family-label);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.interview-phase-badge.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.interview-phase-badge.is-paused {
+  border-color: #c9b9d8;
+  background: #f3eef8;
+  color: var(--focus-ring);
+}
+.interview-phase-badge.is-success {
+  border-color: var(--success);
+  background: #e3efe0;
+  color: var(--success);
+}
+.interview-phase-badge.is-warning {
+  border-color: #e3c58f;
+  background: #fbf0db;
+  color: var(--warning);
+}
+.interview-phase-badge.is-error {
+  border-color: var(--error);
+  background: #fbefee;
+  color: var(--error);
+}

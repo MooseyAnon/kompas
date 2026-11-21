@@ -1,0 +1,48 @@
+.ui-empty-state {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  /* Bottom clearance keeps copy clear of the decorative corner. */
+  padding-bottom: calc(var(--space-4) + 44px);
+}
+.ui-empty-state-icon {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.ui-empty-state-copy {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  max-width: 560px;
+}
+.ui-empty-state-copy h2,
+.ui-empty-state-copy h3 {
+  margin: 4px 0 var(--space-1);
+  font-family: var(--font-family-display);
+  font-size: 1.35rem;
+  line-height: 1.15;
+}
+.ui-empty-state-copy p {
+  margin: 0 0 var(--space-1);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.ui-empty-state-copy p:last-child {
+  margin-bottom: 0;
+}
+@media (max-width: 600px) {
+  .ui-empty-state {
+    flex-direction: column;
+  }
+}

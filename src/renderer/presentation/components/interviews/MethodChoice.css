@@ -1,0 +1,142 @@
+.method-choice {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.method-choice-legend {
+  padding: 0;
+  margin-bottom: 6px;
+  color: var(--text-muted);
+  font-family: var(--font-family-label);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.method-choice-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 10px;
+}
+.method-choice-card {
+  app-region: no-drag;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 12px 14px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface-raised);
+  cursor: pointer;
+  transition:
+    border-color var(--motion-fast),
+    background var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+.method-choice-card:hover {
+  border-color: var(--accent);
+}
+.method-choice-card.is-selected {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, var(--accent-soft), #f4f8ec 70%);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+.method-choice-card:has(input:focus-visible) {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.method-choice:disabled .method-choice-card {
+  cursor: not-allowed;
+}
+.method-choice:disabled .method-choice-card:not(.is-selected) {
+  opacity: 0.55;
+}
+/* The native radio stays in the accessibility tree and keyboard order. */
+.method-choice-card input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+}
+.method-choice-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.method-choice-card.is-selected .method-choice-icon {
+  background: var(--surface-raised);
+}
+.method-choice-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding-right: 18px;
+}
+.method-choice-copy strong {
+  font-family: var(--font-family-display);
+  font-size: 1.15rem;
+  line-height: 1.15;
+}
+.method-choice-copy span {
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+.method-choice-copy small {
+  color: var(--text-muted);
+  font-family: var(--font-family-label);
+  font-size: 0.7rem;
+  line-height: 1.3;
+}
+.method-choice-mark {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-raised);
+  color: var(--text-on-accent);
+}
+.method-choice-card.is-selected .method-choice-mark {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.method-choice-decor {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.method-choice-decor img {
+  position: absolute;
+  object-fit: contain;
+  opacity: 0.85;
+}
+.method-choice-grass {
+  width: 34px;
+  right: -4px;
+  bottom: -9px;
+}
+.method-choice-flower {
+  width: 24px;
+  right: 18px;
+  bottom: -6px;
+}
+.method-choice-note {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+}

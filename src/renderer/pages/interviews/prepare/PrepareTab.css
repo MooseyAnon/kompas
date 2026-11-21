@@ -1,0 +1,203 @@
+/* `.prepare` is the size container; its children respond to its width. */
+.prepare {
+  container-type: inline-size;
+  font-size: 0.86rem;
+}
+.prepare-layout {
+  display: grid;
+  gap: var(--space-3);
+  align-items: start;
+}
+@container (min-width: 960px) {
+  .prepare-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 310px);
+  }
+}
+
+.prepare-form {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.prepare-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+.prepare-heading h2 {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.prepare-heading .ui-button,
+.prepare-notice .ui-button {
+  padding: 5px 12px;
+  font-size: 0.8rem;
+}
+.prepare-heading .ui-button svg,
+.prepare-notice .ui-button svg {
+  width: 16px;
+  height: 16px;
+}
+.prepare-quiet {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+.prepare-fieldset {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.prepare-fields {
+  display: grid;
+  gap: 10px 12px;
+}
+@container (min-width: 600px) {
+  .prepare-fields {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+  .prepare-fields.has-count {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(130px, 0.5fr);
+  }
+}
+.prepare-field {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+}
+.prepare-field label {
+  color: var(--text-primary);
+  font-family: var(--font-family-label);
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+.prepare-field label span {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.prepare-field input,
+.prepare-field select,
+.prepare-field textarea {
+  app-region: no-drag;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  font-family: var(--font-family-body);
+  font-size: 0.82rem;
+}
+.prepare-field input,
+.prepare-field select {
+  height: 36px;
+  padding: 0 10px;
+}
+.prepare-field textarea {
+  min-height: 72px;
+  padding: 8px 10px;
+  line-height: 1.45;
+  resize: vertical;
+}
+.prepare-field input:focus-visible,
+.prepare-field select:focus-visible,
+.prepare-field textarea:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+.prepare-field [aria-invalid='true'] {
+  border-color: var(--error);
+}
+.prepare-field :disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.prepare-help {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+.prepare-field-error {
+  margin: 0;
+  color: var(--error);
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.prepare-guidance-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.prepare-count {
+  color: var(--text-muted);
+  font-family: var(--font-family-label);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+}
+.prepare-count.is-over {
+  color: var(--error);
+  font-weight: 700;
+}
+
+.prepare-notice {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-small);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+.prepare-notice p {
+  margin: 0;
+}
+.prepare-notice.is-success {
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.prepare-notice.is-error {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--error);
+  background: #fbefee;
+  color: var(--text-primary);
+}
+.prepare-notice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.prepare-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+.prepare-actions .ui-button {
+  padding: 9px 16px;
+  font-size: 0.88rem;
+}
+.prepare-actions .ui-button-primary {
+  padding-inline: 20px;
+  font-weight: 700;
+}
+.prepare-actions-note {
+  flex: 1 1 200px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}

@@ -1,0 +1,91 @@
+.onboarding-shell {
+  height: 100dvh;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+.onboarding-shell .meadow {
+  position: fixed;
+}
+.onboarding-drag {
+  height: 52px;
+  flex: none;
+  app-region: drag;
+}
+.onboarding-panel {
+  position: relative;
+  z-index: 1;
+  width: min(860px, calc(100% - 32px));
+  max-height: calc(100dvh - 64px);
+  min-height: 0;
+  margin: 0 auto 12px;
+  box-sizing: border-box;
+  padding: clamp(12px, 3vw, 28px);
+  background: #fffdf9ef;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+  display: flex;
+  flex-direction: column;
+}
+.onboarding-top,
+.onboarding-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+.onboarding-top span {
+  font-family: var(--font-family-label);
+  font-size: var(--font-small);
+}
+.onboarding-panel h1 {
+  font-family: var(--font-family-display);
+  margin: 8px 0;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+}
+.onboarding-body {
+  overflow: auto;
+  min-height: 0;
+  flex: 1;
+  overscroll-behavior: contain;
+}
+.onboarding-body .profile-page {
+  min-height: 350px;
+  height: min(620px, 100%);
+}
+.onboarding-body .profile-main-card {
+  min-height: 250px;
+}
+.onboarding-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.onboarding-tiles h2 {
+  font-size: 1.2rem;
+}
+.onboarding-actions {
+  justify-content: flex-end;
+  padding-top: 10px;
+}
+.onboarding-settings {
+  height: min(650px, 60vh);
+  display: flex;
+}
+.onboarding-settings > * {
+  width: 100%;
+}
+@media (max-width: 650px), (max-height: 550px) {
+  .onboarding-tiles {
+    grid-template-columns: 1fr;
+  }
+  .onboarding-drag {
+    height: 32px;
+  }
+  .onboarding-panel {
+    max-height: calc(100dvh - 40px);
+  }
+}

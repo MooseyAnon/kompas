@@ -1,0 +1,116 @@
+/* Local OFL font assets from presentation/fonts; only these faces are bundled. */
+@font-face {
+  font-family: 'Baloo 2';
+  src: url('./presentation/fonts/Baloo_2/Baloo2-VariableFont_wght.ttf')
+    format('truetype');
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('./presentation/fonts/JetBrains_Mono/JetBrainsMono-VariableFont_wght.ttf')
+    format('truetype');
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('./presentation/fonts/IBM_Plex_Mono/IBMPlexMono-SemiBold.ttf')
+    format('truetype');
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+/* Available for a later comparison; not applied to any page by default. */
+@font-face {
+  font-family: 'Fredoka';
+  src: url('./presentation/fonts/Fredoka/static/Fredoka-Regular.ttf')
+    format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+/* The active presentation's token seam. A later theme can replace these values. */
+:root {
+  --font-family-display: 'Baloo 2', ui-rounded, sans-serif;
+  --font-family-body: 'JetBrains Mono', ui-monospace, monospace;
+  --font-family-label: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-family-alternative: 'Fredoka', ui-rounded, sans-serif;
+  font-family: var(--font-family-body);
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--canvas);
+  --canvas: #fbf6ed;
+  --surface: #fffaf4;
+  --surface-raised: #fffdf9;
+  --text-primary: #35273d;
+  --text-muted: #62546a;
+  --accent: #648d69;
+  --accent-soft: #dbe9cd;
+  --accent-ink: #31573c;
+  --text-on-accent: #101c16;
+  --success: #356446;
+  --warning: #885819;
+  --error: #a13d48;
+  --border: #dfd5d0;
+  --shadow: 0 16px 48px #35273d1e;
+  --card-shadow: 0 8px 24px #35273d12;
+  --font-small: 0.8125rem;
+  --font-body: 1rem;
+  --font-lead: 1.25rem;
+  --font-heading: clamp(2.5rem, 6vw, 4.5rem);
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-bold: 700;
+  --space-1: 0.5rem;
+  --space-2: 0.75rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2rem;
+  --radius-small: 10px;
+  --radius-large: 22px;
+  --motion-fast: 160ms;
+  --motion-page: 260ms;
+  --focus-ring: #715494;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+button,
+input {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+::selection {
+  background: #decce7;
+  color: var(--text-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

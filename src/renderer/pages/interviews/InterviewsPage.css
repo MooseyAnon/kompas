@@ -1,0 +1,97 @@
+/* Same fixed-header, bounded-outlet composition as Settings. */
+.interviews-page {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.interviews-intro {
+  flex: none;
+  margin-bottom: var(--space-3);
+}
+.interviews-eyebrow {
+  color: var(--text-muted);
+  font-family: var(--font-family-label);
+  font-size: var(--font-small);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+.interviews-intro h1 {
+  margin: 0.15rem 0;
+  font-family: var(--font-family-display);
+  font-weight: 800;
+  font-size: clamp(2.3rem, 4vw, 3.1rem);
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+.interviews-intro p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+.interviews-session-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 5px 4px 10px;
+}
+.interviews-session-bar .ui-button {
+  padding: 9px 16px;
+  font-size: 0.9rem;
+  app-region: no-drag;
+}
+.interviews-main-card {
+  display: flex;
+  /* Hug short content so the Meadow stays visible; cap and scroll inside when long. */
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 0;
+  margin-top: var(--space-2);
+  background: #fffdf9ef;
+}
+.interviews-outlet {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 2px 8px 4px 2px;
+  border-radius: var(--radius-small);
+}
+.interviews-arrival {
+  animation: interviews-arrive 180ms ease-out both;
+}
+@keyframes interviews-arrive {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (max-height: 610px) {
+  .interviews-intro {
+    margin-bottom: 4px;
+  }
+  .interviews-eyebrow {
+    display: none;
+  }
+  .interviews-session-bar {
+    padding-bottom: 4px;
+  }
+  .interviews-main-card {
+    margin-top: 4px;
+  }
+}
+@media (max-width: 600px) {
+  .interviews-main-card {
+    padding: var(--space-3);
+  }
+  .interviews-intro p {
+    font-size: var(--font-small);
+  }
+}

@@ -1,0 +1,98 @@
+.interview-question-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  padding: var(--space-3) var(--space-3) calc(var(--space-3) + 14px);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-large);
+  background:
+    radial-gradient(circle at 0% 0%, #fffdf9 0, transparent 55%),
+    linear-gradient(180deg, var(--surface) 0%, #f3f5e6 100%);
+  box-shadow: var(--card-shadow);
+}
+.interview-question-card.is-follow_up,
+.interview-question-card.is-reassessment {
+  border-color: #c9b9d8;
+}
+.interview-question-avatar {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  background: var(--surface-raised);
+  color: var(--accent-ink);
+}
+.is-follow_up .interview-question-avatar,
+.is-reassessment .interview-question-avatar {
+  border-color: var(--focus-ring);
+  color: var(--focus-ring);
+}
+.interview-question-body {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  /* Clear the decorative corner. */
+  padding-right: min(12%, 80px);
+}
+.interview-question-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+.interview-question-kind {
+  color: var(--accent-ink);
+  font-family: var(--font-family-label);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.interview-question-competency,
+.interview-question-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-family: var(--font-family-label);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.interview-question-competency {
+  background: #ece4f3;
+  color: var(--focus-ring);
+}
+.interview-question-role {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.interview-question-text {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: 1.28rem;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px), (max-height: 610px) {
+  .interview-question-card {
+    gap: 10px;
+    padding: var(--space-2) var(--space-2) calc(var(--space-2) + 10px);
+  }
+  .interview-question-avatar {
+    width: 36px;
+    height: 36px;
+  }
+  .interview-question-text {
+    font-size: 1.08rem;
+  }
+}

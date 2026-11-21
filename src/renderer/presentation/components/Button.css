@@ -1,0 +1,57 @@
+.ui-button {
+  app-region: no-drag;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  border: 1px solid transparent;
+  border-radius: var(--radius-small);
+  padding: 12px 18px;
+  font-family: var(--font-family-body);
+  font-size: var(--font-body);
+  font-weight: var(--weight-medium);
+  line-height: 1.4;
+  text-align: center;
+  transition:
+    background var(--motion-fast),
+    transform var(--motion-fast),
+    filter var(--motion-fast);
+}
+.ui-button svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
+.ui-button-primary {
+  background: var(--accent);
+  color: var(--text-on-accent);
+  border-color: var(--accent);
+}
+.ui-button-primary:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
+.ui-button-secondary {
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+.ui-button-secondary:hover:not(:disabled),
+.ui-button-ghost:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+.ui-button-ghost {
+  background: transparent;
+  color: var(--text-primary);
+}
+.ui-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.ui-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.ui-button:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}

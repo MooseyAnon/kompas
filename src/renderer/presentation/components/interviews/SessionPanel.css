@@ -1,0 +1,51 @@
+.session-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  padding: var(--space-3) var(--space-3) calc(var(--space-3) + 18px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+  background: var(--surface);
+}
+.session-panel.is-error {
+  border-color: var(--error);
+  background: #fbefee;
+}
+.session-panel-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.session-panel.is-error .session-panel-icon {
+  background: #f6dcdc;
+  color: var(--error);
+}
+.session-panel-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  /* Clear the decorative corner. */
+  padding-right: min(14%, 90px);
+}
+.session-panel-copy h2 {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.session-panel-copy p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}

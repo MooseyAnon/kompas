@@ -1,0 +1,312 @@
+.interview-status {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+  background:
+    radial-gradient(circle at 50% 0%, #fffdf9 0, transparent 60%),
+    linear-gradient(180deg, var(--surface) 0%, #f5f3e2 100%);
+  color: var(--text-primary);
+}
+
+/* Large: the purposeful transition while the first question is prepared. */
+.interview-status-large {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-height: clamp(220px, 42vh, 340px);
+  padding: var(--space-4) var(--space-4) calc(var(--space-4) + 28px);
+  text-align: center;
+}
+.interview-status-art {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  pointer-events: none;
+  user-select: none;
+}
+.interview-status-large .interview-status-art {
+  width: 132px;
+  height: 112px;
+}
+.interview-status-halo,
+.interview-status-bubble {
+  position: absolute;
+  left: 50%;
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+.interview-status-halo {
+  top: 0;
+  width: 104px;
+  height: 104px;
+  background: radial-gradient(circle, #dbe9cdcc 0 55%, #dbe9cd00 72%);
+}
+.interview-status-bubble {
+  top: 14px;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border: 2px solid var(--accent);
+  background: var(--surface-raised);
+  color: var(--accent-ink);
+  box-shadow: var(--card-shadow);
+}
+.interview-status-art img {
+  position: absolute;
+  object-fit: contain;
+}
+.interview-status-grass {
+  width: 46px;
+  left: 6px;
+  bottom: -4px;
+}
+.interview-status-white {
+  width: 30px;
+  left: 30px;
+  bottom: -2px;
+}
+.interview-status-yellow {
+  width: 38px;
+  right: 6px;
+  bottom: -4px;
+}
+.interview-status-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  max-width: 56ch;
+  min-width: 0;
+}
+.interview-status-label {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+.interview-status-phrase {
+  min-height: 1.4em;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  line-height: 1.4;
+  animation: interview-status-phrase-in 420ms ease-out both;
+}
+.interview-status-copy > :not(.interview-status-phrase, [role='status']) {
+  margin-top: var(--space-1);
+}
+
+.interview-status.is-active .interview-status-halo {
+  animation: interview-status-breathe 3.2s ease-in-out infinite;
+}
+.interview-status.is-active .interview-status-bubble {
+  animation: interview-status-bob 3.2s ease-in-out infinite;
+}
+.interview-status.is-active .interview-status-white,
+.interview-status.is-active .interview-status-yellow {
+  transform-origin: 50% 100%;
+  animation: interview-status-sway 4.4s ease-in-out infinite;
+}
+.interview-status.is-active .interview-status-yellow {
+  animation-delay: -1.6s;
+}
+
+@keyframes interview-status-breathe {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(0.92);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.06);
+    opacity: 1;
+  }
+}
+@keyframes interview-status-bob {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-5px);
+  }
+}
+@keyframes interview-status-sway {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+}
+@keyframes interview-status-phrase-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-height: 610px) {
+  /* Side by side so the status and phrase stay visible without scrolling. */
+  .interview-status-large {
+    flex-direction: row;
+    min-height: 0;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3) var(--space-3);
+    text-align: left;
+  }
+  .interview-status-large .interview-status-copy {
+    justify-items: start;
+  }
+  .interview-status-large .interview-status-art {
+    transform: scale(0.72);
+    margin: -14px -18px -18px;
+  }
+  .interview-status-large .interview-status-label {
+    font-size: 1.2rem;
+  }
+}
+/* Inline: a compact row that sits beside content without displacing it. */
+.interview-status-inline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 48px 8px 10px;
+  border-radius: var(--radius-small);
+}
+.interview-status-inline .interview-status-art {
+  width: 44px;
+  height: 44px;
+}
+.interview-status-inline .interview-status-halo {
+  top: 0;
+  width: 44px;
+  height: 44px;
+}
+.interview-status-inline .interview-status-bubble {
+  top: 6px;
+  width: 32px;
+  height: 32px;
+  border-width: 1.5px;
+  box-shadow: none;
+}
+.interview-status-inline .interview-status-copy {
+  justify-items: start;
+  gap: 1px;
+}
+.interview-status-inline .interview-status-label {
+  font-size: 1rem;
+  line-height: 1.25;
+}
+.interview-status-inline .interview-status-phrase {
+  font-size: 0.78rem;
+}
+.interview-status-sprig {
+  position: absolute;
+  right: 10px;
+  bottom: 4px;
+  width: 26px;
+  pointer-events: none;
+  user-select: none;
+  transform-origin: 50% 100%;
+}
+.interview-status-inline.is-active .interview-status-sprig {
+  animation: interview-status-sway 4.4s ease-in-out infinite;
+}
+
+/* Chip: small background indicator; never blocks the answer. */
+.interview-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 3px 12px 3px 3px;
+  border-radius: 999px;
+  box-shadow: var(--card-shadow);
+}
+.interview-status-chip .interview-status-art {
+  width: 24px;
+  height: 24px;
+}
+.interview-status-chip .interview-status-halo {
+  display: none;
+}
+.interview-status-chip .interview-status-bubble {
+  top: 0;
+  width: 24px;
+  height: 24px;
+  border-width: 1.5px;
+  box-shadow: none;
+}
+.interview-status-chip .interview-status-copy {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  justify-items: start;
+}
+.interview-status-chip .interview-status-label {
+  font-family: var(--font-family-label);
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.interview-status-chip .interview-status-phrase {
+  min-height: 0;
+  overflow: hidden;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.interview-status-chip.is-active .interview-status-bubble {
+  animation: interview-status-pulse 2.4s ease-in-out infinite;
+}
+@media (max-width: 640px) {
+  .interview-status-chip .interview-status-phrase {
+    display: none;
+  }
+}
+
+/* Transcription belongs to Audio, so it looks distinct from model work. */
+.interview-status.is-transcription {
+  background:
+    radial-gradient(circle at 50% 0%, #fffdf9 0, transparent 60%),
+    linear-gradient(180deg, var(--surface) 0%, #f3eef8 100%);
+}
+.interview-status.is-transcription .interview-status-halo {
+  background: radial-gradient(circle, #e4daf0cc 0 55%, #e4daf000 72%);
+}
+.interview-status.is-transcription .interview-status-bubble {
+  border-color: var(--focus-ring);
+  color: var(--focus-ring);
+}
+
+@keyframes interview-status-pulse {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interview-status *,
+  .interview-status.is-active * {
+    animation-duration: 0.00001s !important;
+    animation-iteration-count: 1 !important;
+  }
+}

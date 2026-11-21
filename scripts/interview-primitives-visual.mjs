@@ -24,6 +24,25 @@ const SIZES = [
   ['compact', 560, 760],
 ];
 
+async function checkRecordingSignal(page) {
+  const recording = await page
+    .locator('.interview-recording')
+    .evaluate((node) => ({
+      text: node.textContent,
+      ring: getComputedStyle(node.querySelector('.interview-recording-ring'))
+        .animationName,
+      stopVisible: !!node.querySelector('[data-testid$="-stop"]'),
+    }));
+
+  if (
+    !recording.text.includes('Recording') ||
+    recording.ring === 'none' ||
+    !recording.stopVisible
+  ) {
+    throw new Error(`recording signal failed: ${JSON.stringify(recording)}`);
+  }
+}
+
 const server = await createServer({
   configFile: false,
   plugins: [react()],
@@ -85,23 +104,7 @@ try {
         );
 
       if (state === 'recording') {
-        const recording = await page
-          .locator('.interview-recording')
-          .evaluate((node) => ({
-            text: node.textContent,
-            ring: getComputedStyle(
-              node.querySelector('.interview-recording-ring'),
-            ).animationName,
-            stopVisible: !!node.querySelector('[data-testid$="-stop"]'),
-          }));
-        if (
-          !recording.text.includes('Recording') ||
-          recording.ring === 'none' ||
-          !recording.stopVisible
-        )
-          throw new Error(
-            `recording signal failed: ${JSON.stringify(recording)}`,
-          );
+        await checkRecordingSignal(page);
       }
 
       await page.screenshot({

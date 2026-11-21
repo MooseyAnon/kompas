@@ -71,6 +71,20 @@ const SHOTS = [
   },
 ];
 
+async function checkRecordingSignal(page) {
+  const recording = await page
+    .locator('.interview-recording')
+    .evaluate((node) => ({
+      text: node.textContent,
+      stop: !!node.querySelector('[data-testid="interview-recording-stop"]'),
+      levels: node.querySelectorAll('.interview-recording-levels > *').length,
+    }));
+
+  if (!recording.text.includes('Recording') || !recording.stop) {
+    throw new Error(`recording signal failed: ${JSON.stringify(recording)}`);
+  }
+}
+
 const server = await createServer({
   configFile: false,
   plugins: [react()],
@@ -145,20 +159,7 @@ try {
         throw new Error(`${shot.name} at ${size}: ${failures.join(', ')}`);
 
       if (shot.name === 'recording') {
-        const recording = await page
-          .locator('.interview-recording')
-          .evaluate((node) => ({
-            text: node.textContent,
-            stop: !!node.querySelector(
-              '[data-testid="interview-recording-stop"]',
-            ),
-            levels: node.querySelectorAll('.interview-recording-levels > *')
-              .length,
-          }));
-        if (!recording.text.includes('Recording') || !recording.stop)
-          throw new Error(
-            `recording signal failed: ${JSON.stringify(recording)}`,
-          );
+        await checkRecordingSignal(page);
       }
 
       await page.screenshot({

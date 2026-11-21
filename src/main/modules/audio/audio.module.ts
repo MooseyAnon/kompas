@@ -40,16 +40,10 @@ import { defineCommand, type ModuleManifest } from '../../ipc/dispatcher';
 import type { RecordingService } from './audio.service';
 import type { TranscriptionService } from './stt/transcription.service';
 
-/**
- * Build the statically-registered `audio` module manifest (API major v1). The
- * Stage 008.2 speech-to-text commands are additive and are registered only when
- * a TranscriptionService is wired (it needs the bundled engine resources).
- */
-export function createAudioModule(
+function createCaptureCommands(
   service: RecordingService,
-  transcription?: TranscriptionService,
-): ModuleManifest {
-  const commands: ModuleManifest['commands'] = {
+): ModuleManifest['commands'] {
+  return {
     'capture.begin': defineCommand({
       input: audioCaptureBeginInputSchema,
       output: audioCaptureBeginOutputSchema,
@@ -78,6 +72,13 @@ export function createAudioModule(
       output: audioCaptureCancelOutputSchema,
       handle: (input) => service.cancelCapture(input.captureId, input.token),
     }),
+  };
+}
+
+function createRecordingCommands(
+  service: RecordingService,
+): ModuleManifest['commands'] {
+  return {
     list: defineCommand({
       input: audioListInputSchema,
       output: audioListOutputSchema,
@@ -105,62 +106,83 @@ export function createAudioModule(
       handle: (input) => service.closePlayback(input.id, input.token),
     }),
   };
+}
+
+function createTranscriptionCommands(
+  transcription: TranscriptionService,
+): ModuleManifest['commands'] {
+  return {
+    'stt.providers.list': defineCommand({
+      input: audioSttProvidersListInputSchema,
+      output: audioSttProvidersListOutputSchema,
+      handle: async () => ({ items: await transcription.listProviders() }),
+    }),
+    'stt.providers.verify': defineCommand({
+      input: audioSttProvidersVerifyInputSchema,
+      output: audioSttProvidersVerifyOutputSchema,
+      handle: (input) => transcription.verifyProvider(input.providerId),
+    }),
+    'stt.jobs.start': defineCommand({
+      input: audioSttJobsStartInputSchema,
+      output: audioSttJobsStartOutputSchema,
+      handle: async (input) => ({
+        job: await transcription.startJob({
+          recordingId: input.recordingId,
+          providerId: input.providerId,
+          languageHint: input.languageHint,
+        }),
+      }),
+    }),
+    'stt.jobs.get': defineCommand({
+      input: audioSttJobsGetInputSchema,
+      output: audioSttJobsGetOutputSchema,
+      handle: (input) => ({ job: transcription.getJob(input.jobId) }),
+    }),
+    'stt.jobs.list': defineCommand({
+      input: audioSttJobsListInputSchema,
+      output: audioSttJobsListOutputSchema,
+      handle: (input) => ({
+        items: transcription.listJobs(input.recordingId),
+      }),
+    }),
+    'stt.jobs.cancel': defineCommand({
+      input: audioSttJobsCancelInputSchema,
+      output: audioSttJobsCancelOutputSchema,
+      handle: (input) => transcription.cancelJob(input.jobId),
+    }),
+    'stt.jobs.retry': defineCommand({
+      input: audioSttJobsRetryInputSchema,
+      output: audioSttJobsRetryOutputSchema,
+      handle: async (input) => ({
+        job: await transcription.retryJob(input.jobId, input.languageHint),
+      }),
+    }),
+    'stt.transcripts.get': defineCommand({
+      input: audioSttTranscriptsGetInputSchema,
+      output: audioSttTranscriptsGetOutputSchema,
+      handle: (input) => ({
+        transcript: transcription.getTranscript(input.transcriptId),
+      }),
+    }),
+  };
+}
+
+/**
+ * Build the statically-registered `audio` module manifest (API major v1). The
+ * Stage 008.2 speech-to-text commands are additive and are registered only when
+ * a TranscriptionService is wired (it needs the bundled engine resources).
+ */
+export function createAudioModule(
+  service: RecordingService,
+  transcription?: TranscriptionService,
+): ModuleManifest {
+  const commands: ModuleManifest['commands'] = {
+    ...createCaptureCommands(service),
+    ...createRecordingCommands(service),
+  };
 
   if (transcription) {
-    Object.assign(commands, {
-      'stt.providers.list': defineCommand({
-        input: audioSttProvidersListInputSchema,
-        output: audioSttProvidersListOutputSchema,
-        handle: async () => ({ items: await transcription.listProviders() }),
-      }),
-      'stt.providers.verify': defineCommand({
-        input: audioSttProvidersVerifyInputSchema,
-        output: audioSttProvidersVerifyOutputSchema,
-        handle: (input) => transcription.verifyProvider(input.providerId),
-      }),
-      'stt.jobs.start': defineCommand({
-        input: audioSttJobsStartInputSchema,
-        output: audioSttJobsStartOutputSchema,
-        handle: async (input) => ({
-          job: await transcription.startJob({
-            recordingId: input.recordingId,
-            providerId: input.providerId,
-            languageHint: input.languageHint,
-          }),
-        }),
-      }),
-      'stt.jobs.get': defineCommand({
-        input: audioSttJobsGetInputSchema,
-        output: audioSttJobsGetOutputSchema,
-        handle: (input) => ({ job: transcription.getJob(input.jobId) }),
-      }),
-      'stt.jobs.list': defineCommand({
-        input: audioSttJobsListInputSchema,
-        output: audioSttJobsListOutputSchema,
-        handle: (input) => ({
-          items: transcription.listJobs(input.recordingId),
-        }),
-      }),
-      'stt.jobs.cancel': defineCommand({
-        input: audioSttJobsCancelInputSchema,
-        output: audioSttJobsCancelOutputSchema,
-        handle: (input) => transcription.cancelJob(input.jobId),
-      }),
-      'stt.jobs.retry': defineCommand({
-        input: audioSttJobsRetryInputSchema,
-        output: audioSttJobsRetryOutputSchema,
-        handle: async (input) => ({
-          job: await transcription.retryJob(input.jobId, input.languageHint),
-        }),
-      }),
-      'stt.transcripts.get': defineCommand({
-        input: audioSttTranscriptsGetInputSchema,
-        output: audioSttTranscriptsGetOutputSchema,
-        handle: (input) => ({
-          transcript: transcription.getTranscript(input.transcriptId),
-        }),
-      }),
-    });
+    Object.assign(commands, createTranscriptionCommands(transcription));
   }
 
   return { id: AUDIO_MODULE_ID, apiMajor: AUDIO_API_VERSION, commands };

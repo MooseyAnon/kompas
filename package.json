@@ -15,7 +15,7 @@
     "make:signed": "KOMPAS_RELEASE=1 npm run make",
     "branding:generate": "node scripts/generate-icons.mjs",
     "packaging:plan": "node scripts/packaging-plan.mjs",
-    "release": "KOMPAS_RELEASE=1 electron-forge release --platform=darwin --arch=arm64",
+    "release": "node scripts/draft-release.mjs",
     "lint": "oxlint && oxfmt --check",
     "lint:fix": "oxlint --fix && oxfmt --write",
     "typecheck": "tsc --noEmit",

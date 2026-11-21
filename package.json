@@ -34,6 +34,7 @@
     "smoke:ui:reset": "node scripts/packaged-smoke.mjs reset"
   },
   "devDependencies": {
+    "@electron/asar": "4.3.1",
     "@electron-forge/cli": "^8.0.1",
     "@electron-forge/maker-deb": "^8.0.1",
     "@electron-forge/maker-dmg": "8.0.1",

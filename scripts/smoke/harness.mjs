@@ -14,11 +14,11 @@ export const REPO_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const APP_BINARY = path.join(
   REPO_ROOT,
   'out',
-  'Career Workspace-darwin-arm64',
-  'Career Workspace.app',
+  'Kompas-darwin-arm64',
+  'Kompas.app',
   'Contents',
   'MacOS',
-  'Career Workspace',
+  'Kompas',
 );
 const WAIT_MS = 20000;
 const POLL_MS = 100;

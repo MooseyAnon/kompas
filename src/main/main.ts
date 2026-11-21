@@ -15,6 +15,7 @@ import {
 } from './core/storage-maintenance';
 import { AppError } from './ipc/errors';
 import { resolveDataDir, resolveStorageLayout } from './core/paths';
+import { preserveStorageIdentity } from './core/app-identity';
 import { ProviderManager } from './modules/inference/provider-manager';
 import { WorkerSupervisor } from './modules/inference/worker-supervisor';
 import { UtilityProcessTransport } from './modules/inference/utility-transport';
@@ -62,6 +63,10 @@ const WORKER_STATUS_TIMEOUT_MS = 6_000;
 
 const DEV_SERVER_URL = MAIN_WINDOW_VITE_DEV_SERVER_URL ?? undefined;
 const IS_DEV = Boolean(DEV_SERVER_URL);
+
+// Electron previously derived this from productName (already "Kompas"). Pin
+// it independently of future display branding; retain explicit smoke profiles.
+preserveStorageIdentity(app);
 
 // SQLite already uses a separate development identity. Keep Chromium's default
 // session in that same identity too, so clearing dev session data cannot touch
@@ -253,7 +258,7 @@ function createWindow(): void {
     minWidth: 820,
     minHeight: 560,
     show: false,
-    title: 'Career Workspace',
+    title: 'Kompas',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       sandbox: true,

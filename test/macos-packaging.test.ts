@@ -83,6 +83,12 @@ describe('Apple artifact verification gate', () => {
       'codesign failed for Kompas.app',
     );
     expect(execFileSync).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(execFileSync).mock.calls[1]?.[1]).toEqual([
+      '--verify',
+      '-R',
+      '=anchor apple generic and certificate leaf[field.1.2.840.113635.100.6.1.13] exists',
+      '/tmp/Kompas.app',
+    ]);
   });
 
   it('rejects a signed app without a valid stapled notarisation ticket', () => {

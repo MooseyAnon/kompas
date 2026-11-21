@@ -54,7 +54,8 @@ export function verifyAppleArtifact(file: string, kind: 'app' | 'dmg'): void {
   run('codesign', [
     '--verify',
     '-R',
-    'anchor apple generic and certificate leaf[field.1.2.840.113635.100.6.1.13] exists',
+    // codesign treats a requirement without '=' as a filename.
+    '=anchor apple generic and certificate leaf[field.1.2.840.113635.100.6.1.13] exists',
     file,
   ]);
   run('xcrun', ['stapler', 'validate', file]);

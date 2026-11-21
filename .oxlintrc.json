@@ -6,7 +6,10 @@
   "rules": {
     "prefer-const": "error",
     "max-depth": ["warn", { "max": 4 }],
-    "max-lines-per-function": ["warn", { "max": 80, "skipBlankLines": true, "skipComments": true }]
+    "max-lines-per-function": [
+      "warn",
+      { "max": 80, "skipBlankLines": true, "skipComments": true }
+    ]
   },
   "overrides": [
     {

@@ -168,7 +168,9 @@ function countExcludedQuestions(messages: ProviderMessages): number {
     return 0;
   }
 
-  const lines = text.slice(start + EXCLUDED_QUESTIONS_MARKER.length).split('\n');
+  const lines = text
+    .slice(start + EXCLUDED_QUESTIONS_MARKER.length)
+    .split('\n');
   let count = 0;
   for (const line of lines) {
     const trimmed = line.trim();
@@ -533,7 +535,8 @@ export class MockProvider implements WorkerProvider {
     }
 
     const isEchoModel =
-      modelId === MOCK_MODELS.static || modelId === MOCK_MODELS.faultInvalidJson;
+      modelId === MOCK_MODELS.static ||
+      modelId === MOCK_MODELS.faultInvalidJson;
     if (!isEchoModel) {
       return failure('MODEL_NOT_FOUND', 'Unknown mock model.');
     }

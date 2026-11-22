@@ -119,6 +119,87 @@ describe('Ollama endpoint safety', () => {
   });
 });
 
+describe('Ollama model capacity', () => {
+  it('reads architecture-specific official metadata separately from configured context', async () => {
+    const fake = await createFakeOllama();
+    fake.on(
+      'POST /api/show',
+      jsonRoute({
+        parameters: 'temperature 0.7\nnum_ctx 8192\n',
+        model_info: {
+          'general.architecture': 'qwen3',
+          'qwen3.context_length': 131_072,
+          'vision.context_length': 256,
+        },
+      }),
+    );
+    const provider = new OllamaProvider({ endpoint: fake.url });
+    expect(await provider.getModelDetails('qwen3:8b')).toEqual({
+      maxContextTokens: 131_072,
+      configuredContextTokens: 8192,
+      supportsContextOverride: true,
+    });
+  });
+
+  it('does not invent a default when context metadata is missing or invalid', async () => {
+    const fake = await createFakeOllama();
+    const provider = new OllamaProvider({ endpoint: fake.url });
+    for (const capacity of [undefined, 0, -1, 12.5, '32768']) {
+      fake.on(
+        'POST /api/show',
+        jsonRoute({
+          model_info: {
+            'general.architecture': 'llama',
+            'llama.context_length': capacity,
+          },
+        }),
+      );
+      expect(await provider.getModelDetails('llama')).toEqual({
+        maxContextTokens: null,
+        configuredContextTokens: null,
+        supportsContextOverride: true,
+      });
+    }
+    fake.on('POST /api/show', jsonRoute({ wrong: 'shape' }));
+    expect(await provider.getModelDetails('llama')).toBeNull();
+    expect(
+      await new OllamaProvider({
+        endpoint: 'http://10.0.0.1:11434',
+      }).getModelDetails('llama'),
+    ).toBeNull();
+  });
+
+  it('translates neutral context and output limits into the actual chat request', async () => {
+    const fake = await createFakeOllama();
+    let requestBody: unknown;
+    fake.on('POST /api/chat', async (req, res) => {
+      const chunks: Buffer[] = [];
+      for await (const chunk of req) chunks.push(Buffer.from(chunk));
+      requestBody = JSON.parse(Buffer.concat(chunks).toString());
+      res.end(
+        JSON.stringify({
+          message: { content: 'ok' },
+          done: true,
+        }) + '\n',
+      );
+    });
+    const provider = new OllamaProvider({ endpoint: fake.url });
+    const { controls } = collectControls();
+    const result = await provider.generate(
+      {
+        modelId: 'local',
+        messages: [{ role: 'user', content: 'job' }],
+        limits: { contextTokens: 12_000, maxOutputTokens: 4_000 },
+      },
+      controls,
+    );
+    expect(result.status).toBe('completed');
+    expect(requestBody).toMatchObject({
+      options: { num_ctx: 12_000, num_predict: 4_000 },
+    });
+  });
+});
+
 describe('Ollama health detection', () => {
   it('reports ready with models', async () => {
     const fake = await createFakeOllama();

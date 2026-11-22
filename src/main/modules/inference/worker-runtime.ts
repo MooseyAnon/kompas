@@ -145,6 +145,9 @@ export class WorkerRuntime {
           message.payload.providerId,
         );
         break;
+      case 'provider.modelDetails':
+        void this.onModelDetails(message.requestId, message.payload);
+        break;
       case 'generation.start':
         void this.onGenerationStart(message);
         break;
@@ -285,6 +288,26 @@ export class WorkerRuntime {
         },
       });
     }
+  }
+
+  private async onModelDetails(
+    requestId: string,
+    payload: { providerId: string; modelId: string },
+  ): Promise<void> {
+    const provider = this.providers.get(payload.providerId);
+    let details = null;
+    try {
+      details = (await provider?.getModelDetails?.(payload.modelId)) ?? null;
+    } catch {
+      // Metadata failure must not invent a capacity.
+    }
+
+    this.send({
+      protocolVersion: INFERENCE_PROTOCOL_VERSION,
+      kind: 'provider.modelDetails.result',
+      requestId,
+      payload: { ...payload, details },
+    });
   }
 
   // --- generation -----------------------------------------------------------

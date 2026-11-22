@@ -1,7 +1,9 @@
+import { z } from 'zod';
 import type {
   InferenceError,
   JsonValue,
   ModelDescriptor,
+  ModelDetails,
   ProviderCapabilities,
   ToolCall,
   ToolDefinition,
@@ -105,6 +107,17 @@ interface StreamState {
 
 /** Model metadata strings (parameter size, quantization) are capped. */
 const MAX_METADATA_CHARS = 32;
+
+const showModelSchema = z.object({
+  model_info: z.record(z.string(), z.unknown()),
+  parameters: z.string().optional(),
+});
+
+function positiveInteger(value: unknown): number | null {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0
+    ? value
+    : null;
+}
 
 /** Classify a failed loopback request without guessing installation state. */
 type ConnectionFailure = 'refused' | 'aborted' | 'other';
@@ -216,6 +229,40 @@ export class OllamaProvider implements WorkerProvider {
     this.endpointIsLocal = isLoopbackEndpoint(this.endpoint);
     this.healthTimeoutMs = options.healthTimeoutMs ?? HEALTH_TIMEOUT_MS;
     this.modelsTimeoutMs = options.modelsTimeoutMs ?? MODELS_TIMEOUT_MS;
+  }
+
+  async getModelDetails(modelId: string): Promise<ModelDetails | null> {
+    if (!this.endpointIsLocal) return null;
+
+    const response = await this.request('/api/show', {
+      method: 'POST',
+      timeoutMs: this.modelsTimeoutMs,
+      body: { model: modelId, verbose: false },
+    });
+    if (!response.ok) return null;
+
+    const parsed = showModelSchema.safeParse(await response.json());
+    if (!parsed.success) return null;
+
+    const info = parsed.data.model_info;
+    const architecture = info['general.architecture'];
+    const maxContextTokens =
+      typeof architecture === 'string'
+        ? positiveInteger(info[`${architecture}.context_length`])
+        : null;
+    const configured = /^\s*num_ctx\s+(\d+)\s*$/m.exec(
+      parsed.data.parameters ?? '',
+    );
+
+    // The runtime's implicit default is not the model maximum. Requests that
+    // need a known window explicitly set num_ctx through the neutral limit.
+    return {
+      maxContextTokens,
+      configuredContextTokens: configured
+        ? positiveInteger(Number(configured[1]))
+        : null,
+      supportsContextOverride: true,
+    };
   }
 
   async status(): Promise<ProviderStatusObservation> {
@@ -483,6 +530,15 @@ function toChatRequestBody(
   if (req.tools && req.tools.length > 0) {
     body.tools = toOllamaTools(req.tools);
   }
+
+  const options: Record<string, number> = {};
+  if (req.limits?.contextTokens !== undefined) {
+    options.num_ctx = req.limits.contextTokens;
+  }
+  if (req.limits?.maxOutputTokens !== undefined) {
+    options.num_predict = req.limits.maxOutputTokens;
+  }
+  if (Object.keys(options).length) body.options = options;
 
   return body;
 }

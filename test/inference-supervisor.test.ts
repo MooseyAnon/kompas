@@ -25,6 +25,52 @@ function makeSupervisor(
 const userMessages = [{ role: 'user' as const, content: 'hi' }];
 
 describe('WorkerSupervisor lifecycle and generation', () => {
+  it('queries adapter model details through the validated worker boundary', async () => {
+    const { supervisor } = makeSupervisor();
+    expect(await supervisor.queryModelDetails('mock', 'mock-static')).toEqual({
+      maxContextTokens: 32_768,
+      configuredContextTokens: 32_768,
+      supportsContextOverride: true,
+    });
+    expect(await supervisor.queryModelDetails('mock', 'missing')).toBeNull();
+    expect(
+      await supervisor.queryModelDetails('unregistered', 'model'),
+    ).toBeNull();
+    await supervisor.stop();
+  });
+
+  it('settles pending detail queries on worker exit', async () => {
+    let transport!: InMemoryTransport;
+    const { supervisor } = makeSupervisor({
+      createTransport: () => {
+        transport = new InMemoryTransport({
+          createProvider: () => ({
+            id: 'mock',
+            status: () => ({
+              state: 'ready',
+              capabilities: {
+                text: 'supported',
+                streaming: 'supported',
+                tools: 'unknown',
+                structuredOutput: 'supported',
+              },
+            }),
+            getModelDetails: () => new Promise(() => {}),
+            generate: async () => ({ status: 'cancelled' }),
+          }),
+        });
+        return transport;
+      },
+    });
+    await supervisor.start();
+    const pending = supervisor.queryModelDetails('mock', 'local');
+    await Promise.resolve();
+    await Promise.resolve();
+    transport.simulateExit();
+    expect(await pending).toBeNull();
+    await supervisor.stop();
+  });
+
   it('starts, reaches ready and reports provider status', async () => {
     const { supervisor } = makeSupervisor();
     await supervisor.start();

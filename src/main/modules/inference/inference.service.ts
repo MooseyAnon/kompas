@@ -15,6 +15,7 @@ import {
   type InferenceTestSnapshot,
   type InferenceStatusGetOutput,
   type ModelDescriptor,
+  type ModelDetails,
   type ModelRecommendations,
   type ProviderStatus,
   type WorkerState,
@@ -64,6 +65,8 @@ interface TestRun {
 
 /** Maximum number of recent connectivity tests retained in memory. */
 const MAX_RETAINED_TESTS = 32;
+const MODEL_DETAILS_TTL_MS = 60_000;
+const MAX_CACHED_MODEL_DETAILS = 32;
 
 /**
  * In-process, provider-neutral inference entry point used by other domain
@@ -81,6 +84,10 @@ export class InferenceService {
   private settingsCache: InferenceSettings | null = null;
   private readonly testRuns = new Map<string, TestRun>();
   private readonly scheduler: GenerationScheduler;
+  private readonly modelDetails = new Map<
+    string,
+    { expiresAt: number; result: Promise<ModelDetails | null> }
+  >();
 
   constructor(deps: InferenceServiceDeps) {
     this.supervisor = deps.supervisor;
@@ -103,6 +110,7 @@ export class InferenceService {
   }
 
   async stop(): Promise<void> {
+    this.modelDetails.clear();
     this.scheduler.stop();
     await this.supervisor.stop();
   }
@@ -140,6 +148,32 @@ export class InferenceService {
     const models = await this.supervisor.queryModels(providerId);
 
     return models ?? [];
+  }
+
+  /** Bounded, short-lived adapter metadata cache, shared by concurrent callers. */
+  async getModelDetails(
+    providerId: string,
+    modelId: string,
+  ): Promise<ModelDetails | null> {
+    this.providers.get(providerId);
+    const key = JSON.stringify([providerId, modelId]);
+    const cached = this.modelDetails.get(key);
+    if (cached && cached.expiresAt > Date.now()) return cached.result;
+
+    if (this.modelDetails.size >= MAX_CACHED_MODEL_DETAILS) {
+      const oldest = this.modelDetails.keys().next().value;
+      if (oldest) this.modelDetails.delete(oldest);
+    }
+
+    const result = this.supervisor.queryModelDetails(providerId, modelId);
+    const entry = { expiresAt: Date.now() + MODEL_DETAILS_TTL_MS, result };
+    this.modelDetails.set(key, entry);
+    const details = await result;
+    if (!details && this.modelDetails.get(key) === entry) {
+      this.modelDetails.delete(key);
+    }
+
+    return details;
   }
 
   /** Conservative, qualified recommendation over installed local models only. */

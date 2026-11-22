@@ -128,6 +128,31 @@ describe('distributable integrity', () => {
       auditContent('.vite/build/main.cjs', Buffer.from('public code')),
     ).not.toThrow();
   });
+
+  it('rejects valid hashes for mixed versions or two of the same format', () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'manifest-test-'));
+    temporary.push(directory);
+    const files = [
+      'Kompas-0.1.0-mac-arm64.dmg',
+      'Kompas-0.2.0-mac-arm64.zip',
+      'Kompas-0.2.0-mac-arm64.dmg',
+    ].map((name) => path.join(directory, name));
+    for (const file of files) fs.writeFileSync(file, 'fixture');
+    expect(() =>
+      verifyManifest(directory, checksumManifest(files.slice(0, 2))),
+    ).toThrow('Mixed');
+    expect(() =>
+      verifyManifest(directory, checksumManifest([files[0], files[2]])),
+    ).toThrow();
+    const invalid = 'Kompas-0.1.0.0-mac-arm64.zip';
+    fs.writeFileSync(path.join(directory, invalid), 'fixture');
+    expect(() =>
+      verifyManifest(
+        directory,
+        checksumManifest([files[0], path.join(directory, invalid)]),
+      ),
+    ).toThrow();
+  });
 });
 
 describe('draft-only reruns', () => {

@@ -64,7 +64,7 @@ jobs:
       - run: node scripts/provision-whisper.mjs
       - run: npm test
       - name: Unsigned packaged smoke before importing credentials
-        run: npm run make && npm run smoke
+        run: npm run make && npm run release:acceptance:unsigned && npm run smoke
 
       - name: Import ephemeral Apple credentials
         run: node scripts/release-keychain.mjs setup

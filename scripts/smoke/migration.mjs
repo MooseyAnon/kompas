@@ -68,10 +68,24 @@ function seedOlderDatabase(file) {
 }
 
 export async function migrationSmoke(harness) {
+  const backup = harness.temporaryDirectory('upgrade-backup');
+  const backupFile = path.join(backup, 'app.sqlite');
+  const ids = seedOlderDatabase(backupFile);
+  fs.mkdirSync(path.join(backup, 'documents', 'originals'), {
+    recursive: true,
+  });
+  const document = path.join('documents', 'originals', 'preserved.pdf');
+  fs.writeFileSync(path.join(backup, document), 'synthetic migration sentinel');
+  const originalDigest = crypto
+    .createHash('sha256')
+    .update(fs.readFileSync(backupFile))
+    .digest('hex');
   const profile = harness.temporaryDirectory('upgrade');
+  // Upgrade a full copy; the quit-state pre-migration backup stays unchanged.
+  fs.cpSync(backup, profile, { recursive: true });
   const file = path.join(profile, 'app.sqlite');
-  const ids = seedOlderDatabase(file);
-  const session = await harness.launch({ profile });
+  let session = await harness.launch({ profile, onboarding: true });
+  await session.page.getByTestId('page-home').waitFor();
   const { item } = await call(session.page, 'applications', 'get', {
     id: ids.application,
   });
@@ -92,6 +106,26 @@ export async function migrationSmoke(harness) {
   );
   await call(session.page, 'jobDiscovery', 'savedSearches.list');
   await harness.stop(session);
+  session = await harness.launch({ profile, onboarding: true });
+  await session.page.getByTestId('page-home').waitFor();
+  assert.equal(
+    (await call(session.page, 'applications', 'get', { id: ids.application }))
+      .item.application.companyName,
+    'Fixture company',
+  );
+  await harness.stop(session);
+  assert.equal(
+    fs.readFileSync(path.join(profile, document), 'utf8'),
+    'synthetic migration sentinel',
+  );
+  assert.equal(
+    crypto
+      .createHash('sha256')
+      .update(fs.readFileSync(backupFile))
+      .digest('hex'),
+    originalDigest,
+    'Pre-upgrade backup was modified',
+  );
   const upgraded = new Database(file, { readonly: true });
 
   try {

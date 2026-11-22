@@ -41,6 +41,7 @@ export function verifyManifest(directory, manifest) {
   const entries = manifest.trimEnd().split('\n');
   if (entries.length !== 2) throw new Error('Expected exactly two digests');
   const names = new Set();
+  let version;
   for (const line of entries) {
     const match =
       /^([a-f0-9]{64})  (Kompas-[\d.]+-mac-arm64\.(?:dmg|zip))$/.exec(line);
@@ -48,10 +49,17 @@ export function verifyManifest(directory, manifest) {
       throw new Error('Invalid digest manifest');
     }
     names.add(match[2]);
+    const entryVersion = /^Kompas-(.*)-mac-arm64\./.exec(match[2])[1];
+    version ??= entryVersion;
+    if (entryVersion !== version) throw new Error('Mixed manifest versions');
     const file = path.join(directory, match[2]);
     if (checksumManifest([file]) !== `${line}\n`) {
       throw new Error('Distributable checksum mismatch');
     }
+  }
+  const expected = distributables(version).map((file) => path.basename(file));
+  if (!expected.every((name) => names.has(name))) {
+    throw new Error('Expected one DMG and one ZIP');
   }
 }
 
@@ -97,6 +105,9 @@ export function auditBundle(app) {
   );
   if (
     info.CFBundleIdentifier !== 'com.kompas.kompas' ||
+    info.CFBundleName !== 'Kompas' ||
+    info.CFBundleDisplayName !== 'Kompas' ||
+    info.CFBundleVersion !== version ||
     info.CFBundleShortVersionString !== version ||
     info.CFBundleExecutable !== 'Kompas' ||
     !/^\d+\.\d+(?:\.\d+)?$/.test(info.LSMinimumSystemVersion)
@@ -104,6 +115,13 @@ export function auditBundle(app) {
     throw new Error('Packaged identity/version mismatch');
   }
   const resources = path.join(app, 'Contents', 'Resources');
+  if (
+    !fs
+      .readFileSync(path.join(resources, info.CFBundleIconFile))
+      .equals(fs.readFileSync('assets/branding/Kompas.icns'))
+  ) {
+    throw new Error('Packaged flower icon mismatch');
+  }
   const asar = path.join(resources, 'app.asar');
   const entries = listPackage(asar).map((entry) => entry.replace(/^\//, ''));
   if (
@@ -152,14 +170,15 @@ export function auditBundle(app) {
   return info;
 }
 
-export function stageRelease() {
+// Unsigned inspection is explicit and never stages or uploads a release.
+export function inspectDistributables({ signed = true } = {}) {
   const { version } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
   const [dmg, zip] = distributables(version);
   // Both delivery formats are independently checked, including the app inside.
   checksumManifest([dmg, zip]);
   execFileSync('unzip', ['-tqq', zip], { stdio: 'pipe' });
   execFileSync('hdiutil', ['verify', dmg], { stdio: 'pipe' });
-  verifyAppleArtifact(dmg, 'dmg');
+  if (signed) verifyAppleArtifact(dmg, 'dmg');
   const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'kompas-artifacts-'));
   const mount = path.join(temporary, 'mount');
   let mounted = false;
@@ -170,7 +189,7 @@ export function stageRelease() {
     if (fs.readdirSync(zipRoot).join() !== 'Kompas.app') {
       throw new Error('ZIP must contain only Kompas.app');
     }
-    verifyAppleArtifact(path.join(zipRoot, 'Kompas.app'), 'app');
+    if (signed) verifyAppleArtifact(path.join(zipRoot, 'Kompas.app'), 'app');
     minimumOS = auditBundle(
       path.join(zipRoot, 'Kompas.app'),
     ).LSMinimumSystemVersion;
@@ -185,12 +204,21 @@ export function stageRelease() {
     ]);
     mounted = true;
     auditTree(mount);
-    verifyAppleArtifact(path.join(mount, 'Kompas.app'), 'app');
+    if (signed) verifyAppleArtifact(path.join(mount, 'Kompas.app'), 'app');
     auditBundle(path.join(mount, 'Kompas.app'));
+    if (fs.readlinkSync(path.join(mount, 'Applications')) !== '/Applications') {
+      throw new Error('Missing DMG Applications link');
+    }
   } finally {
     if (mounted) execFileSync('hdiutil', ['detach', mount]);
     fs.rmSync(temporary, { recursive: true, force: true });
   }
+  return { dmg, zip, minimumOS };
+}
+
+export function stageRelease() {
+  const { version } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  const { dmg, zip, minimumOS } = inspectDistributables();
   const staging = 'out/release';
   fs.rmSync(staging, { recursive: true, force: true });
   fs.mkdirSync(staging);

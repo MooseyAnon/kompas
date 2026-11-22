@@ -16,6 +16,7 @@
     "branding:generate": "node scripts/generate-icons.mjs",
     "packaging:plan": "node scripts/packaging-plan.mjs",
     "release": "node scripts/draft-release.mjs",
+    "release:acceptance:unsigned": "node scripts/release-acceptance.mjs --unsigned",
     "lint": "oxlint && oxfmt --check",
     "lint:fix": "oxlint --fix && oxfmt --write",
     "typecheck": "tsc --noEmit",

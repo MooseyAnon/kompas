@@ -33,6 +33,7 @@ jobs:
         run: node scripts/provision-whisper.mjs
       - run: npm test
       - run: npm run make
+      - run: npm run release:acceptance:unsigned
       - name: Deterministic packaged journeys
         run: npm run smoke
       # Live Ollama, microphone/TCC and personal-browser tests are owner gates.

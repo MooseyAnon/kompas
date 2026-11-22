@@ -24,7 +24,7 @@ export function validateReleaseSource(env, version, head, tagCommit, onMain) {
     tagCommit !== head ||
     !onMain
   ) {
-    throw new Error('Tag must point to the owner-authorised commit on main');
+    throw new Error('Tag must point to the owner-authorised commit on master');
   }
   return tag;
 }
@@ -42,10 +42,10 @@ export function guardRelease(env = process.env) {
   }
   let onMain = false;
   try {
-    git('merge-base', '--is-ancestor', 'HEAD', 'refs/remotes/origin/main');
+    git('merge-base', '--is-ancestor', 'HEAD', 'refs/remotes/origin/master');
     onMain = true;
   } catch {
-    // A missing main ref is also a closed gate.
+    // Match Public CI's protected branch; a missing ref is also a closed gate.
   }
   const { version } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
   const tag = validateReleaseSource(

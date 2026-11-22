@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
-export function validateReleaseSource(env, version, head, tagCommit, onMain) {
+export function validateReleaseSource(env, version, head, tagCommit, onMaster) {
   const tag = env.GITHUB_REF?.replace(/^refs\/tags\//, '');
   if (
     env.GITHUB_EVENT_NAME !== 'push' ||
@@ -12,19 +12,15 @@ export function validateReleaseSource(env, version, head, tagCommit, onMain) {
     throw new Error('Release requires a stable vMAJOR.MINOR.PATCH tag push');
   }
   if (tag !== `v${version}`) throw new Error('Tag/package version mismatch');
-  if (
-    !/^[\w.-]+\/[\w.-]+$/.test(env.KOMPAS_RELEASE_REPOSITORY ?? '') ||
-    env.KOMPAS_RELEASE_REPOSITORY !== env.GITHUB_REPOSITORY
-  ) {
-    throw new Error('Owner must configure the exact release repository');
+  if (!/^[\w.-]+\/[\w.-]+$/.test(env.GITHUB_REPOSITORY ?? '')) {
+    throw new Error('Release requires a valid GitHub repository');
   }
   if (
-    !/^[a-f0-9]{40}$/.test(env.KOMPAS_RELEASE_COMMIT ?? '') ||
-    head !== env.KOMPAS_RELEASE_COMMIT ||
+    !/^[a-f0-9]{40}$/.test(tagCommit ?? '') ||
     tagCommit !== head ||
-    !onMain
+    !onMaster
   ) {
-    throw new Error('Tag must point to the owner-authorised commit on master');
+    throw new Error('Checkout must match the tagged commit on master');
   }
   return tag;
 }
@@ -40,26 +36,27 @@ export function guardRelease(env = process.env) {
   if (!/^refs\/tags\/v\d+\.\d+\.\d+$/.test(env.GITHUB_REF ?? '')) {
     throw new Error('Invalid release git ref');
   }
-  let onMain = false;
+  let onMaster = false;
   try {
     git('merge-base', '--is-ancestor', 'HEAD', 'refs/remotes/origin/master');
-    onMain = true;
+    onMaster = true;
   } catch {
     // Match Public CI's protected branch; a missing ref is also a closed gate.
   }
   const { version } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  const commit = git('rev-parse', `${env.GITHUB_REF}^{commit}`);
   const tag = validateReleaseSource(
     env,
     version,
     git('rev-parse', 'HEAD'),
-    git('rev-parse', `${env.GITHUB_REF}^{commit}`),
-    onMain,
+    commit,
+    onMaster,
   );
   const repo = JSON.parse(github(['api', `repos/${env.GITHUB_REPOSITORY}`]));
   if (repo.private !== false || repo.visibility !== 'public') {
     throw new Error('Public release blocked: repository is not public');
   }
-  return { tag, version, repository: env.GITHUB_REPOSITORY };
+  return { tag, version, repository: env.GITHUB_REPOSITORY, commit };
 }
 
 if (

@@ -17,8 +17,6 @@ const environment = {
   GITHUB_EVENT_NAME: 'push',
   GITHUB_REF: 'refs/tags/v0.1.0',
   GITHUB_REPOSITORY: 'example/kompas',
-  KOMPAS_RELEASE_REPOSITORY: 'example/kompas',
-  KOMPAS_RELEASE_COMMIT: commit,
 };
 const temporary: string[] = [];
 afterEach(() => {
@@ -27,8 +25,8 @@ afterEach(() => {
   }
 });
 
-describe('release source authority', () => {
-  it('accepts the matching owner-authorised stable release', () => {
+describe('release source validation', () => {
+  it('accepts a matching stable tag on master without custom release variables', () => {
     expect(
       validateReleaseSource(environment, '0.1.0', commit, commit, true),
     ).toBe('v0.1.0');
@@ -49,15 +47,15 @@ describe('release source authority', () => {
     },
   );
 
-  it('rejects version mismatch, dispatch, fork, unapproved or off-main source', () => {
+  it('rejects version mismatch, dispatch, invalid repository or off-master source', () => {
     expect(() =>
       validateReleaseSource(environment, '0.1.1', commit, commit, true),
     ).toThrow('mismatch');
     for (const override of [
       { GITHUB_EVENT_NAME: 'workflow_dispatch' },
-      { GITHUB_REPOSITORY: 'fork/kompas' },
-      { KOMPAS_RELEASE_REPOSITORY: '' },
-      { KOMPAS_RELEASE_COMMIT: 'b'.repeat(40) },
+      { GITHUB_REPOSITORY: '' },
+      { GITHUB_REPOSITORY: 'kompas' },
+      { GITHUB_REPOSITORY: 'example/kompas/extra' },
     ]) {
       expect(() =>
         validateReleaseSource(
@@ -71,10 +69,13 @@ describe('release source authority', () => {
     }
     expect(() =>
       validateReleaseSource(environment, '0.1.0', commit, 'b'.repeat(40), true),
-    ).toThrow('authorised');
+    ).toThrow('tagged commit on master');
     expect(() =>
       validateReleaseSource(environment, '0.1.0', commit, commit, false),
-    ).toThrow('authorised');
+    ).toThrow('tagged commit on master');
+    expect(() =>
+      validateReleaseSource(environment, '0.1.0', 'invalid', 'invalid', true),
+    ).toThrow('tagged commit on master');
   });
 });
 

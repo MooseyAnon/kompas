@@ -12,17 +12,19 @@ const CANONICAL_URL = 'https://boards.greenhouse.io/acme/jobs/3456789';
 const SLOW_SEARCH_DELAY_MS = 8000;
 
 function canonicalPage(): PageReadResult {
+  const text =
+    'Acme seeks a Software Intern in London. Responsibilities include ' +
+    'developing software, testing TypeScript applications and collaborating ' +
+    'with colleagues. Requirements include TypeScript and clear ' +
+    'communication with the engineering team.';
+
   return {
     requestedUrl: CANONICAL_URL,
     url: CANONICAL_URL,
     title: 'Software Intern - Acme',
     status: 200,
-    html: '<main>Job</main>',
-    text:
-      'Acme seeks a Software Intern in London. Responsibilities include ' +
-      'developing software, testing TypeScript applications and collaborating ' +
-      'with colleagues. Requirements include TypeScript and clear ' +
-      'communication with the engineering team.',
+    html: `<main><h1>Software Intern - Acme</h1><p>${text}</p></main>`,
+    text,
     providerId: 'smoke',
     browserId: 'smoke',
     truncated: { html: false, text: false },

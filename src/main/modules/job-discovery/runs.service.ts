@@ -294,7 +294,11 @@ function extractionStep(facts: CandidateFacts) {
 
   return {
     status: extractionStatus(facts),
-    reason: ready ? null : (fact.extractionError ?? missingReason),
+    reason: ready
+      ? null
+      : fact.extractionError === 'RESOURCE_LIMIT'
+        ? (fact.extractionDiagnostics[0] ?? fact.extractionError)
+        : (fact.extractionError ?? missingReason),
     retryAvailable:
       facts.retryAllowed &&
       verified &&

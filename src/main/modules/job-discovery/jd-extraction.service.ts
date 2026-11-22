@@ -194,7 +194,13 @@ export class JdExtractionService {
         run.id,
         sourceId,
         attempt.id,
-        { jd: null, provenance: null, diagnostics: [], errorCode: code },
+        {
+          jd: null,
+          provenance: null,
+          diagnostics:
+            error instanceof JdExtractionError ? error.diagnostics : [],
+          errorCode: code,
+        },
         this.clock().toISOString(),
         requireRunning,
       );

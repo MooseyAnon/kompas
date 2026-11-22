@@ -7,6 +7,7 @@ import {
   type PageReadResult,
 } from '../src/shared/contracts';
 import { WebError } from '../src/main/modules/web/web.error';
+import type { GenerationEntry } from '../src/main/modules/inference/inference.service';
 
 const url = 'https://acme.example/jobs/software-intern';
 const page: PageReadResult = {
@@ -14,7 +15,7 @@ const page: PageReadResult = {
   url,
   status: 200,
   title: 'Software Intern - Acme',
-  html: '<main>Job</main>',
+  html: '<main><h1>Software Intern - Acme</h1><p>Acme seeks a Software Intern in London. Responsibilities: develop reliable software and collaborate with the team. Requirements include careful testing and effective communication across departments.</p></main>',
   text: 'Acme seeks a Software Intern in London. Responsibilities: develop reliable software and collaborate with the team. Requirements include careful testing and effective communication across departments.',
   providerId: 'fixture',
   browserId: 'fixture',
@@ -42,6 +43,11 @@ const modelOutput = {
 function setup(read: PageReadResult = page, output: unknown = modelOutput) {
   const web = { readPage: vi.fn(async () => read), search: vi.fn() };
   const inference = {
+    getModelDetails: vi.fn(async () => ({
+      maxContextTokens: 32_000,
+      configuredContextTokens: null,
+      supportsContextOverride: true,
+    })),
     getSettingsSnapshot: vi.fn(async () => ({
       settings: {
         providerId: 'ollama',
@@ -56,7 +62,7 @@ function setup(read: PageReadResult = page, output: unknown = modelOutput) {
         contextLength: 32000,
       },
     })),
-    generate: vi.fn(async () => ({
+    generate: vi.fn(async (_request: GenerationEntry) => ({
       status: 'completed',
       output,
       toolCalls: [],
@@ -120,6 +126,21 @@ it('rejects invalid and private URLs before fetching', async () => {
   ])
     await expect(service.preview({ url: invalid })).rejects.toThrow();
   expect(web.readPage).not.toHaveBeenCalled();
+});
+
+it('passes only the complete posting to inference when URL import has large page chrome', async () => {
+  const captured = {
+    ...page,
+    html: `<nav>${'UNRELATED_CHROME '.repeat(4_000)}</nav>${page.html}`,
+    text: `${'UNRELATED_CHROME '.repeat(4_000)}\n${page.text}`,
+  };
+  const { service, inference } = setup(captured);
+  const result = await service.preview({ url });
+  expect(result.extractionSucceeded).toBe(true);
+  const request = inference.generate.mock.calls[0][0];
+  expect(request.messages[1].content).toContain(page.text);
+  expect(request.messages[1].content).not.toContain('UNRELATED_CHROME');
+  expect(inference.getModelDetails).toHaveBeenCalledWith('ollama', 'local');
 });
 
 it('retains manual fallback on blocked, redirected, truncated, generic or model-failed pages', async () => {

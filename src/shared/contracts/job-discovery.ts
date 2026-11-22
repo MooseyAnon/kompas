@@ -537,7 +537,7 @@ export const jdExtractionSchema = z.strictObject({
       requestId: z.uuid(),
       thinking: z.literal(false),
       configurationVersion: z.literal(1),
-      promptVersion: z.literal('jd-extract-v1'),
+      promptVersion: z.enum(['jd-extract-v1', 'jd-extract-v2']),
       timeoutMs: z.number().int().min(100).max(INFERENCE_LIMITS.maxTimeoutMs),
     })
     .nullable(),

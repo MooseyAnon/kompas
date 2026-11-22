@@ -493,6 +493,17 @@ export class MockProvider implements WorkerProvider {
     ];
   }
 
+  async getModelDetails(modelId: string) {
+    const models = await this.listModels();
+    if (!models.some((model) => model.id === modelId)) return null;
+
+    return {
+      maxContextTokens: 32_768,
+      configuredContextTokens: 32_768,
+      supportsContextOverride: true,
+    };
+  }
+
   async generate(
     req: ProviderGenerateRequest,
     controls: ProviderGenerateControls,

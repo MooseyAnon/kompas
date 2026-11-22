@@ -81,6 +81,30 @@ afterEach(async () => {
   fs.rmSync(workDir, { recursive: true, force: true });
 });
 
+it('coalesces model detail queries, expires cached capacity and retries missing metadata', async () => {
+  const query = vi.spyOn(supervisor, 'queryModelDetails');
+  const now = Date.now();
+  const clock = vi.spyOn(Date, 'now').mockReturnValue(now);
+  try {
+    const [first, second] = await Promise.all([
+      service.getModelDetails('mock', 'mock-static'),
+      service.getModelDetails('mock', 'mock-static'),
+    ]);
+    expect(first).toEqual(second);
+    expect(first?.maxContextTokens).toBe(32_768);
+    expect(query).toHaveBeenCalledTimes(1);
+    clock.mockReturnValue(now + 60_001);
+    await service.getModelDetails('mock', 'mock-static');
+    expect(query).toHaveBeenCalledTimes(2);
+    await service.getModelDetails('mock', 'missing');
+    await service.getModelDetails('mock', 'missing');
+    expect(query).toHaveBeenCalledTimes(4);
+  } finally {
+    clock.mockRestore();
+    query.mockRestore();
+  }
+});
+
 async function send<T = unknown>(
   action: string,
   payload: unknown = {},

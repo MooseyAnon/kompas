@@ -4,6 +4,7 @@ import type {
   InferenceError,
   JsonValue,
   ModelDescriptor,
+  ModelDetails,
   ProviderCapabilities,
   ProviderState,
   ResponseFormat,
@@ -80,6 +81,8 @@ export interface WorkerProvider {
   status(): ProviderStatusObservation | Promise<ProviderStatusObservation>;
   /** Discover locally installed model descriptors (006.2). */
   listModels?(): Promise<ModelDescriptor[]>;
+  /** On-demand official capacity metadata; null means unavailable. */
+  getModelDetails?(modelId: string): Promise<ModelDetails | null>;
   generate(
     req: ProviderGenerateRequest,
     controls: ProviderGenerateControls,

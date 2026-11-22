@@ -6,6 +6,7 @@ import {
   inferenceErrorSchema,
   jsonValueSchema,
   modelDescriptorSchema,
+  modelDetailsSchema,
   providerCapabilitiesSchema,
   providerStateSchema,
   responseFormatSchema,
@@ -75,6 +76,16 @@ export const providerModelsMessageSchema = z.object({
   payload: z.object({ providerId: providerIdSchema }),
 });
 
+export const providerModelDetailsMessageSchema = z.object({
+  protocolVersion: protocolVersionSchema,
+  kind: z.literal('provider.modelDetails'),
+  requestId: requestIdSchema,
+  payload: z.object({
+    providerId: providerIdSchema,
+    modelId: z.string().min(1).max(128),
+  }),
+});
+
 export const generationStartMessageSchema = z.object({
   protocolVersion: protocolVersionSchema,
   kind: z.literal('generation.start'),
@@ -127,6 +138,7 @@ export const mainToWorkerMessageSchema = z.discriminatedUnion('kind', [
   workerInitMessageSchema,
   providerStatusMessageSchema,
   providerModelsMessageSchema,
+  providerModelDetailsMessageSchema,
   generationStartMessageSchema,
   generationCancelMessageSchema,
   toolExecutionResultMessageSchema,
@@ -171,6 +183,17 @@ export const providerModelsResultMessageSchema = z.object({
     providerId: providerIdSchema,
     models: z.array(modelDescriptorSchema).max(256),
     error: inferenceErrorSchema.optional(),
+  }),
+});
+
+export const providerModelDetailsResultMessageSchema = z.object({
+  protocolVersion: protocolVersionSchema,
+  kind: z.literal('provider.modelDetails.result'),
+  requestId: requestIdSchema,
+  payload: z.object({
+    providerId: providerIdSchema,
+    modelId: z.string().min(1).max(128),
+    details: modelDetailsSchema.nullable(),
   }),
 });
 
@@ -263,6 +286,7 @@ export const workerToMainMessageSchema = z.discriminatedUnion('kind', [
   workerFailureMessageSchema,
   providerStatusResultMessageSchema,
   providerModelsResultMessageSchema,
+  providerModelDetailsResultMessageSchema,
   generationEventMessageSchema,
   toolExecutionRequestMessageSchema,
   workerStoppedMessageSchema,

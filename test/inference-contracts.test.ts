@@ -21,6 +21,37 @@ import {
 const uuid = () => crypto.randomUUID();
 
 describe('inference request/result/event contracts', () => {
+  it('validates capacity metadata and positive context overrides at the worker boundary', () => {
+    const reply = {
+      protocolVersion: INFERENCE_PROTOCOL_VERSION,
+      kind: 'provider.modelDetails.result',
+      requestId: uuid(),
+      payload: {
+        providerId: 'adapter',
+        modelId: 'local',
+        details: {
+          maxContextTokens: 131_072,
+          configuredContextTokens: null,
+          supportsContextOverride: true,
+        },
+      },
+    };
+    expect(workerToMainMessageSchema.safeParse(reply).success).toBe(true);
+    reply.payload.details.maxContextTokens = -1;
+    expect(workerToMainMessageSchema.safeParse(reply).success).toBe(false);
+    for (const contextTokens of [0, -1, 1.5, '8000']) {
+      expect(
+        generationRequestSchema.safeParse({
+          requestId: uuid(),
+          providerId: 'adapter',
+          modelId: 'local',
+          messages: [{ role: 'user', content: 'job' }],
+          limits: { contextTokens },
+        }).success,
+      ).toBe(false);
+    }
+  });
+
   it('accepts a well-formed generation request', () => {
     const parsed = generationRequestSchema.safeParse({
       requestId: uuid(),

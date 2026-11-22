@@ -127,6 +127,14 @@ export const modelDescriptorSchema = z.object({
 });
 export type ModelDescriptor = z.infer<typeof modelDescriptorSchema>;
 
+/** Adapter-reported capacity; model maximum and runtime allocation differ. */
+export const modelDetailsSchema = z.object({
+  maxContextTokens: z.number().int().positive().nullable(),
+  configuredContextTokens: z.number().int().positive().nullable(),
+  supportsContextOverride: z.boolean(),
+});
+export type ModelDetails = z.infer<typeof modelDetailsSchema>;
+
 // --- Model recommendations (006.2) ------------------------------------------
 
 /** A conservative, qualified recommendation for one installed local model. */
@@ -408,6 +416,8 @@ export const generationLimitsSchema = z.object({
     .max(INFERENCE_LIMITS.maxTimeoutMs)
     .optional(),
   maxOutputTokens: z.number().int().positive().max(100_000).optional(),
+  /** Requested total context window, translated by the provider adapter. */
+  contextTokens: z.number().int().positive().optional(),
 });
 export type GenerationLimits = z.infer<typeof generationLimitsSchema>;
 

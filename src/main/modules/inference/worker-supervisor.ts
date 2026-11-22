@@ -8,6 +8,7 @@ import {
   type GenerationResult,
   type InferenceErrorCode,
   type ModelDescriptor,
+  type ModelDetails,
   type ProviderCapabilities,
   type ProviderState,
   type ToolCall,
@@ -94,6 +95,16 @@ interface PendingGeneration {
 /** Resolver for a correlated worker query; `null` means no usable answer. */
 type QueryResolver<T> = (value: T | null) => void;
 
+type ProviderQuery =
+  | {
+      kind: 'provider.status' | 'provider.models';
+      payload: { providerId: string };
+    }
+  | {
+      kind: 'provider.modelDetails';
+      payload: { providerId: string; modelId: string };
+    };
+
 type ToolExecutionRequestMessage = Extract<
   WorkerToMainMessage,
   { kind: 'tool.execution.request' }
@@ -108,6 +119,7 @@ type GenerationEventMessage = Extract<
 const FINISHED_CACHE_CAP = 256;
 
 const DEFAULT_STATUS_TIMEOUT_MS = 2_000;
+const MODEL_DETAILS_TIMEOUT_MS = 5_000;
 
 const DEFAULT_TELEMETRY_OPERATION = 'generation';
 
@@ -158,6 +170,10 @@ export class WorkerSupervisor {
     QueryResolver<ModelDescriptor[]>
   >();
   private readonly finished = new Set<string>();
+  private readonly pendingModelDetails = new Map<
+    string,
+    QueryResolver<ModelDetails>
+  >();
 
   private readonly inFlight = new Map<string, number>();
   private readonly waiters: Array<{ providerId: string; resolve: () => void }> =
@@ -235,6 +251,7 @@ export class WorkerSupervisor {
 
     this.shutdownResolver = null;
     this.failAllPending('WORKER_EXITED', MESSAGES.workerStopped);
+    resolveAllWithNull(this.pendingModelDetails);
     this.flushWaiters();
     this.teardown(transport);
     this.state = 'stopped';
@@ -321,12 +338,29 @@ export class WorkerSupervisor {
   async queryProviderStatus(
     providerId: string,
   ): Promise<WorkerProviderObservation | null> {
-    return this.queryWorker(this.pendingStatus, 'provider.status', providerId);
+    return this.queryWorker(this.pendingStatus, {
+      kind: 'provider.status',
+      payload: { providerId },
+    });
   }
 
   /** Query the worker for a provider's installed model descriptors. */
   async queryModels(providerId: string): Promise<ModelDescriptor[] | null> {
-    return this.queryWorker(this.pendingModels, 'provider.models', providerId);
+    return this.queryWorker(this.pendingModels, {
+      kind: 'provider.models',
+      payload: { providerId },
+    });
+  }
+
+  async queryModelDetails(
+    providerId: string,
+    modelId: string,
+  ): Promise<ModelDetails | null> {
+    await this.ensureReady();
+    return this.queryWorker(this.pendingModelDetails, {
+      kind: 'provider.modelDetails',
+      payload: { providerId, modelId },
+    });
   }
 
   // --- lifecycle ------------------------------------------------------------
@@ -607,8 +641,7 @@ export class WorkerSupervisor {
    */
   private queryWorker<T>(
     resolvers: Map<string, QueryResolver<T>>,
-    kind: 'provider.status' | 'provider.models',
-    providerId: string,
+    query: ProviderQuery,
   ): Promise<T | null> {
     const transport = this.transport;
     if (this.state !== 'ready' || !transport) {
@@ -618,10 +651,15 @@ export class WorkerSupervisor {
     const requestId = newId();
 
     return new Promise<T | null>((resolve) => {
-      const timer = setTimeout(() => {
-        resolvers.delete(requestId);
-        resolve(null);
-      }, this.statusTimeoutMs);
+      const timer = setTimeout(
+        () => {
+          resolvers.delete(requestId);
+          resolve(null);
+        },
+        query.kind === 'provider.modelDetails'
+          ? MODEL_DETAILS_TIMEOUT_MS
+          : this.statusTimeoutMs,
+      );
 
       resolvers.set(requestId, (value) => {
         clearTimeout(timer);
@@ -631,9 +669,8 @@ export class WorkerSupervisor {
 
       transport.send({
         protocolVersion: INFERENCE_PROTOCOL_VERSION,
-        kind,
         requestId,
-        payload: { providerId },
+        ...query,
       });
     });
   }
@@ -669,6 +706,11 @@ export class WorkerSupervisor {
         break;
       case 'provider.models.result':
         this.pendingModels.get(message.requestId)?.(message.payload.models);
+        break;
+      case 'provider.modelDetails.result':
+        this.pendingModelDetails.get(message.requestId)?.(
+          message.payload.details,
+        );
         break;
       case 'generation.event':
         this.onGenerationEvent(message);
@@ -746,6 +788,7 @@ export class WorkerSupervisor {
     this.failAllPending('WORKER_EXITED', MESSAGES.workerExited);
     resolveAllWithNull(this.pendingStatus);
     resolveAllWithNull(this.pendingModels);
+    resolveAllWithNull(this.pendingModelDetails);
     this.flushWaiters();
 
     this.transport = null;

@@ -27,7 +27,7 @@ function readRelease(tag, repository, fields) {
 }
 
 export function uploadDraft() {
-  const { tag, version, repository } = guardRelease();
+  const { tag, version, repository, commit } = guardRelease();
   // Reverify signatures and archives at the sole upload entry point as well.
   stageRelease();
   const pages = JSON.parse(
@@ -38,11 +38,7 @@ export function uploadDraft() {
       `repos/${repository}/releases?per_page=100`,
     ]),
   );
-  const existing = reusableDraft(
-    pages.flat(),
-    tag,
-    process.env.KOMPAS_RELEASE_COMMIT,
-  );
+  const existing = reusableDraft(pages.flat(), tag, commit);
   if (!existing) {
     github([
       'release',
@@ -53,7 +49,7 @@ export function uploadDraft() {
       '--verify-tag',
       '--draft',
       '--target',
-      process.env.KOMPAS_RELEASE_COMMIT,
+      commit,
       '--title',
       `Kompas ${version}`,
       '--notes-file',
@@ -62,10 +58,7 @@ export function uploadDraft() {
   }
   // Reruns only replace assets while still a draft. Never edit publication state.
   const current = readRelease(tag, repository, 'isDraft,targetCommitish');
-  if (
-    !current.isDraft ||
-    current.targetCommitish !== process.env.KOMPAS_RELEASE_COMMIT
-  ) {
+  if (!current.isDraft || current.targetCommitish !== commit) {
     throw new Error('Draft changed before upload; owner intervention required');
   }
   verifyManifest(

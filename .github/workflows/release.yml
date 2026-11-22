@@ -25,12 +25,10 @@ jobs:
         with:
           node-version: '24.15.0'
 
-      - name: Validate public repository and authorised source before install
+      - name: Validate public repository and tagged source on master before install
         run: node scripts/release-guard.mjs
         env:
           GH_TOKEN: ${{ github.token }}
-          KOMPAS_RELEASE_REPOSITORY: ${{ vars.KOMPAS_RELEASE_REPOSITORY }}
-          KOMPAS_RELEASE_COMMIT: ${{ vars.KOMPAS_RELEASE_COMMIT }}
 
   draft:
     needs: validate
@@ -55,8 +53,6 @@ jobs:
         run: node scripts/release-guard.mjs
         env:
           GH_TOKEN: ${{ github.token }}
-          KOMPAS_RELEASE_REPOSITORY: ${{ vars.KOMPAS_RELEASE_REPOSITORY }}
-          KOMPAS_RELEASE_COMMIT: ${{ vars.KOMPAS_RELEASE_COMMIT }}
 
       - run: npm ci
       - run: npm run typecheck
@@ -81,15 +77,11 @@ jobs:
         env:
           KOMPAS_SIGN_IDENTITY: ${{ secrets.KOMPAS_SIGN_IDENTITY }}
           GH_TOKEN: ${{ github.token }}
-          KOMPAS_RELEASE_REPOSITORY: ${{ vars.KOMPAS_RELEASE_REPOSITORY }}
-          KOMPAS_RELEASE_COMMIT: ${{ vars.KOMPAS_RELEASE_COMMIT }}
 
       - name: Verify artifacts and create or reuse tag draft (never publish)
         run: npm run release
         env:
           GH_TOKEN: ${{ github.token }}
-          KOMPAS_RELEASE_REPOSITORY: ${{ vars.KOMPAS_RELEASE_REPOSITORY }}
-          KOMPAS_RELEASE_COMMIT: ${{ vars.KOMPAS_RELEASE_COMMIT }}
 
       - name: Remove temporary keychain and private files
         if: always()

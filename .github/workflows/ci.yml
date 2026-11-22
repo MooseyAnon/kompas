@@ -13,9 +13,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check:
+  # Fast source checks start immediately, independently of native provisioning.
+  quality:
     runs-on: macos-15
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,12 +30,212 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
+
+  # Build/download Whisper once; tests and packaging consume identical assets.
+  runtime:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.15.0'
+
+      # The hosted image version covers its Xcode/CMake toolchain. Script changes
+      # also invalidate the cache, including changes to pinned sources/build flags.
+      - name: Identify runner image
+        id: image
+        run: echo "version=${ImageOS}-${ImageVersion}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore pinned offline runtime
+        id: whisper-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: resources/whisper/
+          key: whisper-${{ runner.os }}-${{ runner.arch }}-${{ steps.image.outputs.version }}-${{ hashFiles('scripts/provision-whisper.mjs') }}
+
       - name: Provision pinned offline runtime
+        if: steps.whisper-cache.outputs.cache-hit != 'true'
         run: node scripts/provision-whisper.mjs
+
+      # A cache hit must still pass the manifest's hash and size checks.
+      - name: Verify offline runtime
+        run: node scripts/provision-whisper.mjs --verify
+
+      - name: Cache verified offline runtime
+        if: steps.whisper-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: resources/whisper/
+          key: ${{ steps.whisper-cache.outputs.cache-primary-key }}
+
+      - name: Share offline runtime with dependent jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: whisper-runtime
+          path: resources/whisper/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+
+  # Keep real Whisper coverage enabled by installing assets before Vitest starts.
+  # Tests and packaging run in parallel once the runtime is available.
+  tests:
+    needs: runtime
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.15.0'
+          cache: npm
+
+      - run: npm ci
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: whisper-runtime
+          path: resources/whisper/
+
+      # GitHub artifacts reset file permissions; restore the native executable.
+      - name: Restore and verify offline runtime
+        run: |
+          chmod +x resources/whisper/bin/whisper-cli
+          node scripts/provision-whisper.mjs --verify
+
       - run: npm test
+
+  # Produce and audit the unsigned app once for all packaged smoke journeys.
+  package:
+    needs: runtime
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.15.0'
+          cache: npm
+
+      - run: npm ci
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: whisper-runtime
+          path: resources/whisper/
+
+      - name: Restore and verify offline runtime
+        run: |
+          chmod +x resources/whisper/bin/whisper-cli
+          node scripts/provision-whisper.mjs --verify
+
       - run: npm run make
       - run: npm run release:acceptance:unsigned
-      - name: Deterministic packaged journeys
-        run: npm run smoke
-      # Live Ollama, microphone/TCC and personal-browser tests are owner gates.
-      # No live-test flags are set here; see docs/RELEASING.md.
+
+      # Archive before uploading: a raw artifact would lose executable modes and
+      # framework symlinks. Only the packaged app is needed by the smoke runners.
+      - name: Archive packaged application
+        run: tar -czf "$RUNNER_TEMP/packaged-app.tar.gz" -C out Kompas-darwin-arm64
+
+      - name: Share packaged application
+        uses: actions/upload-artifact@v4
+        with:
+          name: packaged-app
+          path: ${{ runner.temp }}/packaged-app.tar.gz
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+
+  # Each group gets an isolated runner/profile and the same built application.
+  # Journeys within a group stay sequential to avoid competing desktop sessions.
+  smoke:
+    needs: package
+    runs-on: macos-15
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include:
+          - group: core
+            journeys: onboarding core discovery
+          - group: jobs
+            journeys: jobs review-apply applications
+          - group: workspace
+            journeys: profile interviews
+          - group: settings
+            journeys: shell settings reset
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.15.0'
+          cache: npm
+
+      - run: npm ci
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: packaged-app
+          path: ${{ runner.temp }}/packaged-app
+
+      - name: Restore packaged application
+        run: |
+          mkdir -p out
+          tar -xzf "$RUNNER_TEMP/packaged-app/packaged-app.tar.gz" -C out
+
+      # No live-test flags: Ollama, microphone/TCC and personal browsers remain
+      # owner acceptance gates. Matrix values select existing deterministic scripts.
+      - name: Run deterministic packaged journeys
+        env:
+          JOURNEYS: ${{ matrix.journeys }}
+          CW_SMOKE_ARTIFACT_DIR: ${{ runner.temp }}/smoke-failures
+        run: |
+          for journey in $JOURNEYS; do
+            node scripts/packaged-smoke.mjs "$journey"
+          done
+
+      - name: Upload smoke failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-failures-${{ matrix.group }}
+          path: ${{ runner.temp }}/smoke-failures/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # Preserve the existing `check` status for branch protection. always() ensures
+  # failed/skipped dependencies produce a failing gate instead of a skipped one.
+  check:
+    if: always()
+    needs: [quality, runtime, tests, package, smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every CI stage to succeed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+
+          results = json.loads(os.environ['RESULTS'])
+          for job, details in results.items():
+              print(f"{job}: {details['result']}")
+          sys.exit(0 if all(job['result'] == 'success' for job in results.values()) else 1)
+          PY

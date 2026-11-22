@@ -5,7 +5,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { listPackage, extractFile, statFile } from '@electron/asar';
-import { verifyAppleArtifact } from './macos-packaging.ts';
+import {
+  verifyAppleArtifact,
+  verifyInstalledAppleApp,
+} from './macos-packaging.ts';
 
 export function distributables(version, root = 'out/make') {
   if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version)) {
@@ -178,7 +181,9 @@ export function inspectDistributables({ signed = true } = {}) {
   checksumManifest([dmg, zip]);
   execFileSync('unzip', ['-tqq', zip], { stdio: 'pipe' });
   execFileSync('hdiutil', ['verify', dmg], { stdio: 'pipe' });
-  if (signed) verifyAppleArtifact(dmg, 'dmg');
+
+  if (signed) verifyAppleArtifact(dmg, 'dmg', 'DMG container');
+
   const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'kompas-artifacts-'));
   const mount = path.join(temporary, 'mount');
   let mounted = false;
@@ -189,7 +194,15 @@ export function inspectDistributables({ signed = true } = {}) {
     if (fs.readdirSync(zipRoot).join() !== 'Kompas.app') {
       throw new Error('ZIP must contain only Kompas.app');
     }
-    if (signed) verifyAppleArtifact(path.join(zipRoot, 'Kompas.app'), 'app');
+
+    if (signed) {
+      verifyAppleArtifact(
+        path.join(zipRoot, 'Kompas.app'),
+        'app',
+        'ZIP Kompas.app',
+      );
+    }
+
     minimumOS = auditBundle(
       path.join(zipRoot, 'Kompas.app'),
     ).LSMinimumSystemVersion;
@@ -204,7 +217,14 @@ export function inspectDistributables({ signed = true } = {}) {
     ]);
     mounted = true;
     auditTree(mount);
-    if (signed) verifyAppleArtifact(path.join(mount, 'Kompas.app'), 'app');
+
+    if (signed) {
+      verifyInstalledAppleApp(
+        path.join(mount, 'Kompas.app'),
+        path.join(temporary, 'installed', 'Kompas.app'),
+      );
+    }
+
     auditBundle(path.join(mount, 'Kompas.app'));
     if (fs.readlinkSync(path.join(mount, 'Applications')) !== '/Applications') {
       throw new Error('Missing DMG Applications link');

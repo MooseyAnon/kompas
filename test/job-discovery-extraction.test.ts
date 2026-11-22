@@ -20,6 +20,7 @@ import {
   newJobDiscoveryConfiguration,
   type GenerationResult,
   type PageReadResult,
+  generationRequestSchema,
 } from '../src/shared/contracts';
 import { createAppDispatcher } from '../src/main/core/registry';
 
@@ -31,7 +32,7 @@ const page: PageReadResult = {
   url,
   title: 'Software Intern - Acme',
   status: 200,
-  html: '<main>Job</main>',
+  html: `<main><h1>Software Intern - Acme</h1><p>${text}</p></main>`,
   text,
   providerId: 'fake',
   browserId: 'fake',
@@ -144,6 +145,11 @@ function model(
   reply: unknown = output(),
 ): JdInference & { generate: ReturnType<typeof vi.fn> } {
   return {
+    getModelDetails: async () => ({
+      maxContextTokens: 32_000,
+      configuredContextTokens: null,
+      supportsContextOverride: true,
+    }),
     getSettingsSnapshot: async () => ({
       settings: {
         mode: 'local_only',
@@ -177,7 +183,7 @@ function model(
   };
 }
 
-it('uses a nested schema, thinking-off, whole source and literal evidence for separately grounded skills', async () => {
+it('uses a nested schema, thinking-off, job content and literal evidence for separately grounded skills', async () => {
   expect(jsonSchemaObjectSchema.safeParse(jdModelSchema).success).toBe(true);
   const inference = model();
   const { service, runId, sourceId, captureId } = fixture(inference);
@@ -268,12 +274,18 @@ it('honours a longer global target without exceeding Discovery’s remaining bud
   const signal = new AbortController().signal;
 
   const extended = await interpretJd(page, inference, signal, 1_200_000);
-  expect(extended.provenance.timeoutMs).toBe(1_200_000);
-  expect(inference.generate.mock.calls[0][0].limits.timeoutMs).toBe(1_200_000);
+  expect(extended.provenance.timeoutMs).toBeLessThanOrEqual(1_200_000);
+  expect(extended.provenance.timeoutMs).toBeGreaterThan(1_199_000);
+  expect(inference.generate.mock.calls[0][0].limits.timeoutMs).toBe(
+    extended.provenance.timeoutMs,
+  );
 
   const bounded = await interpretJd(page, inference, signal, 4_000);
-  expect(bounded.provenance.timeoutMs).toBe(4_000);
-  expect(inference.generate.mock.calls[1][0].limits.timeoutMs).toBe(4_000);
+  expect(bounded.provenance.timeoutMs).toBeLessThanOrEqual(4_000);
+  expect(bounded.provenance.timeoutMs).toBeGreaterThan(3_000);
+  expect(inference.generate.mock.calls[1][0].limits.timeoutMs).toBe(
+    bounded.provenance.timeoutMs,
+  );
 });
 
 it('sanitizes malformed fields, unsupported salary and inferred years without failing the overall document', () => {
@@ -344,10 +356,16 @@ it('records a model outage as retryable without inventing an extraction', async 
 
 it('refuses a verified page that cannot fit the model context without shortening the original', async () => {
   const inference = model();
+  inference.getModelDetails = async () => ({
+    maxContextTokens: 8_000,
+    configuredContextTokens: null,
+    supportsContextOverride: true,
+  });
   const longPage = {
     ...page,
     text: `${text} ${'Responsibilities and requirements. '.repeat(800)}`,
   };
+  longPage.html = `<main><h1>${page.title}</h1><p>${longPage.text}</p></main>`;
   const { service, repo, runId, sourceId } = fixture(inference, true, longPage);
   expect(
     (await service.retryExtraction({ id: runId, sourceId }))[0],
@@ -356,6 +374,90 @@ it('refuses a verified page that cannot fit the model context without shortening
   expect(repo.verifiedCapture(runId, sourceId)?.rawReadPage.text).toBe(
     longPage.text,
   );
+});
+
+it('uses adapter capacity with unknown inventory context and sends a complete long JD in bounded messages', async () => {
+  const inference = model();
+  const original = inference.getSettingsSnapshot;
+  inference.getSettingsSnapshot = async () => {
+    const snapshot = await original();
+    return {
+      ...snapshot,
+      resolvedModel: {
+        ...snapshot.resolvedModel!,
+        contextLength: null,
+      },
+    };
+  };
+  const fullText = `${text} ${'Additional responsibilities. '.repeat(950)} END_OF_JOB`;
+  const capturedPage = {
+    ...page,
+    text: fullText,
+    html:
+      `<nav>${'NOISE '.repeat(9_000)}</nav><main>` +
+      `<h1>${page.title}</h1><p>${fullText}</p></main>`,
+  };
+  const { service, runId, sourceId } = fixture(inference, true, capturedPage);
+  const [attempt] = await service.retryExtraction({ id: runId, sourceId });
+  expect(attempt.status).toBe('extracted');
+  const request = inference.generate.mock.calls[0][0];
+  expect(
+    generationRequestSchema.safeParse({
+      ...request,
+      requestId: crypto.randomUUID(),
+    }).success,
+  ).toBe(true);
+  expect(request.messages.length).toBeGreaterThan(2);
+  const userText = request.messages
+    .slice(1)
+    .map((message: { content: string }) =>
+      message.content.replace(
+        /^<untrusted_job_page>\n|\n<\/untrusted_job_page>$/g,
+        '',
+      ),
+    )
+    .join('');
+  expect(userText.replace(/\s+/g, ' ')).toContain(
+    fullText.replace(/\s+/g, ' '),
+  );
+  expect(userText).not.toContain('NOISE');
+  expect(request.limits.contextTokens).toBeGreaterThan(8_000);
+  expect(request.limits.contextTokens).toBeLessThan(32_000);
+  expect(request.limits.maxOutputTokens).toBe(4_000);
+});
+
+it('reports unavailable adapter capacity instead of assuming an 8k context', async () => {
+  const inference = model();
+  inference.getModelDetails = async () => null;
+  const { service, runId, sourceId } = fixture(inference);
+  const [attempt] = await service.retryExtraction({ id: runId, sourceId });
+  expect(attempt).toMatchObject({
+    status: 'failed',
+    errorCode: 'RESOURCE_LIMIT',
+    diagnostics: ['MODEL_CONTEXT_UNAVAILABLE'],
+  });
+  expect(inference.generate).not.toHaveBeenCalled();
+  expect(
+    service.workflowState({ id: runId }).candidates[0].extraction.reason,
+  ).toBe('MODEL_CONTEXT_UNAVAILABLE');
+});
+
+it('honours fixed runtime allocation for adapters without context overrides', async () => {
+  const inference = model();
+  inference.getModelDetails = async () => ({
+    maxContextTokens: 131_072,
+    configuredContextTokens: 4_096,
+    supportsContextOverride: false,
+  });
+  await expect(
+    interpretJd(page, inference, new AbortController().signal, 10_000),
+  ).rejects.toMatchObject({
+    diagnostics: expect.arrayContaining([
+      'JOB_CONTEXT_EXCEEDED',
+      'context_tokens:4096',
+    ]),
+  });
+  expect(inference.generate).not.toHaveBeenCalled();
 });
 
 it('rejects unverified and collection/login pages, with no model invocation', async () => {

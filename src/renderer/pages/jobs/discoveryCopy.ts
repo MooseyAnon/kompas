@@ -48,6 +48,15 @@ export function reasonText(code: string): string {
     MODEL_UNAVAILABLE: 'Local model unavailable. Check Local AI settings.',
     MODEL_FAILED: 'Local model failed. Check Local AI settings.',
     RESOURCE_LIMIT: 'Page exceeds the model resource limit.',
+    JOB_CONTENT_UNAVAILABLE:
+      'A single job description could not be isolated from this page.',
+    JOB_CONTENT_INCOMPLETE:
+      'The captured job content is incomplete or exceeds processing limits.',
+    JOB_CONTENT_TOO_LARGE: 'The job description exceeds the processing limit.',
+    MODEL_CONTEXT_UNAVAILABLE:
+      'The model adapter could not report a usable context capacity.',
+    JOB_CONTEXT_EXCEEDED:
+      'The job description and response budget exceed the model context.',
     INVALID_SCHEMA: 'The model response could not be validated.',
     NOT_JOB_DESCRIPTION: 'The model did not find a job description.',
     WEB_RATE_LIMITED: 'Search provider rate limited this run.',

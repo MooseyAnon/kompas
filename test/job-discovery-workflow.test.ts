@@ -29,7 +29,7 @@ const jobPage: PageReadResult = {
   url: canonical,
   title: 'Software Intern - Acme',
   status: 200,
-  html: '<main>Job</main>',
+  html: `<main><h1>Software Intern - Acme</h1><p>${description}</p></main>`,
   text: description,
   providerId: 'fake',
   browserId: 'fake',
@@ -167,6 +167,11 @@ function model() {
       }) as GenerationResult,
   );
   const inference: JdInference = {
+    getModelDetails: async () => ({
+      maxContextTokens: 32_000,
+      configuredContextTokens: null,
+      supportsContextOverride: true,
+    }),
     getSettingsSnapshot: async () => ({
       settings: {
         mode: 'local_only',

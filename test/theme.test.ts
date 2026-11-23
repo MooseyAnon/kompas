@@ -13,17 +13,17 @@ afterEach(() => {
 });
 
 describe('interface theme', () => {
-  it('defaults to Meadow, remembers Kompas, and lets ?theme= override', () => {
-    expect(readTheme()).toBe('meadow');
-    window.localStorage.setItem('kompas.theme', 'kompas');
+  it('defaults to Kompas, remembers Meadow, and lets ?theme= override', () => {
     expect(readTheme()).toBe('kompas');
+    window.localStorage.setItem('kompas.theme', 'meadow');
+    expect(readTheme()).toBe('meadow');
     window.localStorage.setItem('kompas.theme', 'gnd');
     expect(readTheme()).toBe('kompas');
     window.history.replaceState(null, '', '/?theme=meadow');
     expect(readTheme()).toBe('meadow');
     window.localStorage.setItem('kompas.theme', 'nonsense');
     window.history.replaceState(null, '', '/');
-    expect(readTheme()).toBe('meadow');
+    expect(readTheme()).toBe('kompas');
   });
 
   it('marks the document so Kompas tokens apply only to Kompas', () => {

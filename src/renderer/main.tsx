@@ -11,7 +11,7 @@ if (!container) {
   throw new Error('Root container #root not found');
 }
 
-// Meadow is the default interface; Kompas is chosen in Settings › System.
+// Kompas is the default interface; Meadow is chosen in Settings › System.
 const theme = readTheme();
 applyTheme(theme);
 

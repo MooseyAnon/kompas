@@ -7,7 +7,7 @@ and data; only the presentation differs.
 
 ## Switching
 
-- Settings › System › Interface: Meadow (default) or Kompas. The choice is saved
+- Settings › System › Interface: Kompas (default) or Meadow. The choice is saved
   per computer and the window reloads.
 - For previews, `?theme=kompas` or `?theme=meadow` on the URL overrides it.
 - `src/renderer/main.tsx` reads the choice (`presentation/theme.ts`), sets

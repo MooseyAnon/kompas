@@ -2,7 +2,7 @@ import React from 'react';
 import { type Destination } from './destinations';
 import { ApplicationsPage } from './pages/applications/ApplicationsPage';
 import { HomePage } from './pages/home/HomePage';
-import { InterviewsPage } from '../../pages/interviews/InterviewsPage';
+import { GndInterviewsPage } from './pages/interviews/GndInterviewsPage';
 import { JobsPage } from './pages/jobs/JobsPage';
 import { GndSettingsPage } from './pages/settings/GndSettingsPage';
 import '../../pages/Page.css';
@@ -49,7 +49,9 @@ export function Page({
         />
       );
     case 'interviews':
-      return <InterviewsPage onNavigate={onNavigate} preset={jobs?.practice} />;
+      return (
+        <GndInterviewsPage onNavigate={onNavigate} preset={jobs?.practice} />
+      );
     // Profile and Your applications are one page.
     case 'applications':
     case 'profile':

@@ -52,7 +52,7 @@ export type OnboardingExit = { destination: 'home' | 'jobs' };
  * card's "Looks right" is the single write: confirmed CV facts, target roles,
  * and a saved search whose first run starts before Jobs opens. Step state is
  * transient, as before; a restart returns to Welcome without losing saved
- * records, and "Skip setup" completes onboarding without writing anything.
+ * records. "Skip setup" skips the optional steps but always asks for a role.
  */
 export function Onboarding({
   onComplete,
@@ -135,16 +135,15 @@ export function Onboarding({
     setStep('roles');
   }
 
-  async function skip() {
+  /**
+   * Skipping only skips the optional parts: everyone is asked for the role
+   * they want, so Jobs always has roles. Before roles, Skip goes to the role
+   * question; after it, Skip saves the search with the defaults.
+   */
+  function skip() {
     if (onClose) return onClose();
-    setBusy(true);
-    try {
-      await completeOnboarding();
-      onComplete({ destination: 'home' });
-    } catch {
-      setError('Could not save your setup. Please try again.');
-      setBusy(false);
-    }
+    if (step === 'preferences' || step === 'profile') return void confirm();
+    withoutCv();
   }
 
   async function confirm() {
@@ -207,7 +206,7 @@ export function Onboarding({
     <OnboardingFrame
       stepKey={key}
       align={align}
-      onSkip={() => void skip()}
+      onSkip={key === 'roles' && !onClose ? undefined : skip}
       skipDisabled={busy}
       skipLabel={onClose ? 'Close' : undefined}
       leaving={leaving}

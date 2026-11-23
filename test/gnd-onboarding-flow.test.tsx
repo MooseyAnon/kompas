@@ -192,13 +192,18 @@ describe('GND onboarding', () => {
     expect(onComplete).toHaveBeenCalledWith({ destination: 'jobs' });
   });
 
-  it('skipping setup completes onboarding without writing anything else', async () => {
+  it('skipping setup still asks for the role, and has no skip there', async () => {
     const onComplete = vi.fn();
     await act(async () => root.render(<Onboarding onComplete={onComplete} />));
     await click('Skip setup');
-    expect(api.completeOnboarding).toHaveBeenCalledOnce();
-    expect(api.createSavedSearch).not.toHaveBeenCalled();
-    expect(onComplete).toHaveBeenCalledWith({ destination: 'home' });
+    expect(api.completeOnboarding).not.toHaveBeenCalled();
+    expect(container.textContent).toContain('Your next role');
+    expect(
+      [...container.querySelectorAll('button')].some(
+        (b) => b.textContent === 'Skip setup',
+      ),
+    ).toBe(false);
+    expect(onComplete).not.toHaveBeenCalled();
   });
 
   it('checks Ollama and then the model on one screen, naming whichever is missing', async () => {

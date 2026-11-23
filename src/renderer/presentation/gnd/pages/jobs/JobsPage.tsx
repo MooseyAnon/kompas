@@ -167,7 +167,10 @@ function RolesList({
   onFilters: () => void;
   onStarted: (runId: string) => void;
 }) {
-  const forYou = useJobs('new');
+  // New roles from the latest search; with none, the most recent ones found.
+  const fresh = useJobs('new');
+  const recent = useJobs('all');
+  const forYou = fresh.loading || fresh.jobs.length ? fresh : recent;
   const saved = useJobs('saved');
   const prefs = useSearchPreferences();
   const [showAll, setShowAll] = useState(false);
@@ -244,7 +247,7 @@ function RolesList({
 
           {!finished && (
             <div className="gnd-jobs-section-head">
-              <h2 className="gnd-section-title">For you</h2>
+              <h2 className="gnd-section-title">Recent roles</h2>
             </div>
           )}
           {!forYou.loading && hidden > 0 && (

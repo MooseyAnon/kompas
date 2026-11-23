@@ -55,3 +55,41 @@
   outline: 3px solid var(--focus-ring);
   outline-offset: 3px;
 }
+
+/* GND call to action: Space Grotesk bold capitals, measured from the
+   onboarding designs (51px tall, 33px side padding, soft blue shadow). */
+.ui-button-hero {
+  min-height: 51px;
+  padding: 0 33px;
+  border-radius: var(--radius-small);
+  font-family: var(--font-family-display);
+  font-size: 15px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.ui-button-hero.ui-button-primary {
+  box-shadow: var(--button-shadow);
+}
+
+/* GND outline (blue border) and light (white, for blue surfaces). */
+.ui-button-outline {
+  background: transparent;
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+}
+.ui-button-outline:hover:not(:disabled) {
+  background: #0026ff0d;
+}
+.ui-button-light {
+  background: #fff;
+  color: var(--accent);
+  border-color: #fff;
+}
+.ui-button-light:hover:not(:disabled) {
+  background: #eef1ff;
+}
+.ui-button-hero.ui-button-light {
+  box-shadow: 0 6px 18px #0a1a8a33;
+}

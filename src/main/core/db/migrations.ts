@@ -22,6 +22,8 @@ import resolutionDiagnosticsSql from '../../../../migrations/019_resolution_diag
 import onboardingSql from '../../../../migrations/020_onboarding.sql?raw';
 import experienceDatePrecisionSql from '../../../../migrations/021_experience_date_precision.sql?raw';
 import targetedPageLimitSql from '../../../../migrations/022_targeted_page_limit.sql?raw';
+import searchPreferencesSql from '../../../../migrations/023_search_preferences.sql?raw';
+import profileAvatarSql from '../../../../migrations/024_profile_avatar.sql?raw';
 
 /** A single forward-only schema migration. */
 export interface Migration {
@@ -86,6 +88,9 @@ const refinementMigrations: Migration[] = [
     sql: experienceDatePrecisionSql,
   },
   { version: 24, name: '022_targeted_page_limit', sql: targetedPageLimitSql },
+  // GND theme (ADRs 005 to 007): saved-search preferences and profile avatar.
+  { version: 25, name: '023_search_preferences', sql: searchPreferencesSql },
+  { version: 26, name: '024_profile_avatar', sql: profileAvatarSql },
 ];
 
 /**

@@ -20,6 +20,7 @@ export interface ProfileChanges {
   currentRole?: string | null;
   location?: string | null;
   summary?: string | null;
+  avatar?: string | null;
 }
 
 /** Resolved target column changes for create/update. */
@@ -48,6 +49,7 @@ interface ProfileRow {
   current_role: string | null;
   location: string | null;
   summary: string | null;
+  avatar: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -154,6 +156,7 @@ export class IdentityRepository {
                  current_role = @current_role,
                  location = @location,
                  summary = @summary,
+                 avatar = @avatar,
                  updated_at = @updated_at
            WHERE id = @id`,
         )
@@ -552,6 +555,7 @@ function mergeProfileRow(
     current_role: pick(changes, 'currentRole', orNull, existing.current_role),
     location: pick(changes, 'location', orNull, existing.location),
     summary: pick(changes, 'summary', orNull, existing.summary),
+    avatar: pick(changes, 'avatar', orNull, existing.avatar ?? null),
     updated_at: now,
   };
 }
@@ -654,6 +658,7 @@ function mapProfile(row: ProfileRow): Profile {
     currentRole: row.current_role,
     location: row.location,
     summary: row.summary,
+    avatar: row.avatar ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

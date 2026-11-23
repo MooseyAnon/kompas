@@ -1,0 +1,232 @@
+import React, { useEffect, useState } from 'react';
+import { Check, Copy } from 'lucide-react';
+import {
+  getInferenceHardware,
+  getProviderHealth,
+  listInferenceModels,
+  updateInferenceSettings,
+} from '../../../../api';
+import { Button } from '../../../components/Button';
+import {
+  suggestionFit,
+  suggestions,
+} from '../../../../pages/settings/local-ai/suggestions';
+import './OllamaSetup.css';
+
+const OLLAMA = 'ollama';
+type Platform = 'unix' | 'windows';
+
+const PLATFORMS: Record<
+  Platform,
+  { label: string; shell: string; install: string }
+> = {
+  unix: {
+    label: 'Mac & Linux',
+    shell: 'Terminal',
+    install: 'curl -fsSL https://ollama.com/install.sh | sh',
+  },
+  windows: {
+    label: 'Windows',
+    shell: 'PowerShell',
+    install: 'irm https://ollama.com/install.ps1 | iex',
+  },
+};
+
+const HELP = 'If you get stuck, message 07728990467.';
+export const NO_OLLAMA = `It looks like you haven’t installed Ollama yet. Please try again. ${HELP}`;
+export const NO_MODEL = `Ollama is installed, but the model hasn’t downloaded yet. Run the second command and wait for it to finish. ${HELP}`;
+
+/** The largest suggested model that should fit this machine's memory. */
+export function pickModel(totalBytes: number | null): string {
+  const fitting = suggestions.filter(
+    (item) =>
+      item.family === 'Qwen 3.5' &&
+      suggestionFit(totalBytes, item.ramGb) === 'Might fit',
+  );
+  return (fitting.at(-1) ?? suggestions[0]).tag;
+}
+
+/**
+ * Install Ollama and download the model in one screen: pick your computer,
+ * copy two commands into Terminal, press Done. Done checks Ollama first, then
+ * the model, and says which one is missing.
+ */
+export function OllamaSetup({
+  onReady,
+  onSkip,
+  skipLabel = 'Continue without local AI',
+}: {
+  onReady: () => void;
+  onSkip?: () => void;
+  skipLabel?: string;
+}) {
+  const [platform, setPlatform] = useState<Platform>(
+    navigator.platform.startsWith('Win') ? 'windows' : 'unix',
+  );
+  const [model, setModel] = useState<string>(suggestions[1].tag);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    void getInferenceHardware()
+      .then((hardware) => setModel(pickModel(hardware.totalMemoryBytes)))
+      .catch(() => {});
+  }, []);
+
+  async function check() {
+    setBusy(true);
+    setMessage('');
+    try {
+      const health = await getProviderHealth(OLLAMA).catch(() => null);
+      if (!health?.reachable) return setMessage(NO_OLLAMA);
+      const installed = (await listInferenceModels(OLLAMA)).filter(
+        (item) => item.installed,
+      );
+      if (!installed.length) return setMessage(NO_MODEL);
+      const chosen =
+        installed.find((item) => item.id === model) ??
+        installed.find((item) => item.id.startsWith(model.split(':')[0])) ??
+        installed[0];
+      await updateInferenceSettings({ providerId: OLLAMA, modelId: chosen.id });
+      onReady();
+    } catch {
+      setMessage(`Couldn’t check Ollama. Please try again. ${HELP}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const keys = Object.keys(PLATFORMS) as Platform[];
+  const { shell, install } = PLATFORMS[platform];
+
+  return (
+    <div className="gnd-ollama">
+      <div
+        className="gnd-segmented"
+        role="radiogroup"
+        aria-label="Your computer"
+        style={
+          {
+            '--count': keys.length,
+            '--index': keys.indexOf(platform),
+          } as React.CSSProperties
+        }
+      >
+        <span className="gnd-segmented-pill" aria-hidden="true" />
+        {keys.map((key) => (
+          <button
+            key={key}
+            type="button"
+            role="radio"
+            aria-checked={platform === key}
+            className="gnd-segment"
+            onClick={() => setPlatform(key)}
+          >
+            {PLATFORMS[key].label}
+          </button>
+        ))}
+      </div>
+
+      <ol className="gnd-steps">
+        <li>
+          <span className="gnd-step-number" aria-hidden="true">
+            1
+          </span>
+          <span>
+            Open <strong>{shell}</strong>
+          </span>
+        </li>
+        <li>
+          <span className="gnd-step-number" aria-hidden="true">
+            2
+          </span>
+          <span>Install Ollama: copy and run</span>
+        </li>
+        <li className="gnd-steps-command">
+          <CommandBox key={install} command={install} />
+        </li>
+        <li>
+          <span className="gnd-step-number" aria-hidden="true">
+            3
+          </span>
+          <span>Then download the model GND uses</span>
+        </li>
+        <li className="gnd-steps-command">
+          <CommandBox key={model} command={`ollama pull ${model}`} />
+        </li>
+        <li>
+          <span className="gnd-step-number" aria-hidden="true">
+            4
+          </span>
+          <span>Wait for both to finish, then press Done</span>
+        </li>
+      </ol>
+
+      {message && (
+        <p className="gnd-message is-error" role="alert">
+          {message}
+        </p>
+      )}
+
+      <div className="gnd-ollama-actions">
+        <Button size="hero" disabled={busy} onClick={() => void check()}>
+          {busy ? 'Checking…' : 'Done'}
+        </Button>
+        {onSkip && (
+          <button type="button" className="gnd-text-link" onClick={onSkip}>
+            {skipLabel}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CommandBox({ command }: { command: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    if (await copyText(command)) {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    }
+  }
+
+  return (
+    <div className="gnd-command">
+      <code>{command}</code>
+      <button
+        type="button"
+        className="gnd-command-copy"
+        aria-label={copied ? 'Copied' : 'Copy command'}
+        onClick={() => void copy()}
+      >
+        {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
+      </button>
+    </div>
+  );
+}
+
+/** Copy text, falling back to a hidden text box when the Clipboard API is refused. */
+export async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    const box = document.createElement('textarea');
+    box.value = text;
+    box.setAttribute('readonly', '');
+    box.style.position = 'fixed';
+    box.style.opacity = '0';
+    document.body.appendChild(box);
+    box.select();
+    let ok = false;
+    try {
+      ok = document.execCommand('copy');
+    } catch {
+      ok = false;
+    }
+    box.remove();
+    return ok;
+  }
+}

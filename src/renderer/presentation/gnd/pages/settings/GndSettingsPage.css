@@ -1,0 +1,112 @@
+/* ---------- GND style ---------- */
+.gnd-settings {
+  align-items: center;
+  gap: 0;
+  padding-bottom: 40px;
+}
+.gnd-settings-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+.gnd-settings-head .gnd-muted {
+  margin: 0;
+  font-size: 16px;
+}
+.gnd-settings .gnd-nudge {
+  width: min(100%, 940px);
+}
+/* Section tabs: one pill bar with a highlight that glides between tabs. */
+.gnd-settings .settings-nav-scroll {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 2px 4px 20px;
+}
+.gnd-settings .settings-nav {
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid #8f8f88;
+  border-radius: 999px;
+  background: #ffffffcc;
+}
+.gnd-settings .settings-indicator {
+  box-shadow: none;
+  background: var(--accent-soft);
+}
+.gnd-settings .settings-indicator.is-ready {
+  transition:
+    left 420ms cubic-bezier(0.3, 1.2, 0.4, 1),
+    top 420ms cubic-bezier(0.3, 1.2, 0.4, 1),
+    width 420ms cubic-bezier(0.3, 1.2, 0.4, 1);
+}
+.gnd-settings .settings-pill {
+  gap: 8px;
+  height: 42px;
+  padding: 0 18px;
+  border: 0;
+  background: transparent;
+  font-size: 15px;
+  transition: color 300ms ease;
+}
+.gnd-settings .settings-pill:hover {
+  color: var(--accent);
+}
+.gnd-settings .settings-pill[aria-current='page'] {
+  color: var(--accent);
+}
+.gnd-settings-card {
+  width: min(100%, 940px);
+  padding: 32px 36px;
+  border: 1px solid #ffffffb3;
+  border-radius: 24px;
+  background: #ffffff8c;
+  backdrop-filter: blur(12px);
+  overflow: visible;
+}
+/* Calmer inner cards: no shadows or meadow art, GND corners and type. */
+.gnd-settings-card .meadow-card-corner {
+  display: none;
+}
+.gnd-settings-card .ui-card {
+  border-color: var(--border-soft);
+  border-radius: 16px;
+  background: #ffffffa6;
+  box-shadow: none;
+}
+.gnd-settings-card h2,
+.gnd-settings-card h3 {
+  font-family: var(--font-family-display);
+  font-weight: var(--weight-medium);
+  letter-spacing: -0.015em;
+}
+.gnd-settings-card .ui-button-primary,
+.gnd-settings-card button.ui-button[data-variant='primary'] {
+  background: var(--accent);
+}
+.gnd-settings-setup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.gnd-settings-setup h2 {
+  margin: 0 0 8px;
+  font-size: 34px;
+}
+.gnd-settings-setup > .gnd-muted {
+  max-width: 470px;
+  margin: 0 0 8px;
+  font-size: 15px;
+  line-height: 1.55;
+}
+/* The card grows with its content; the page scrolls, not the card. */
+.gnd-settings,
+.gnd-settings .gnd-settings-card {
+  flex: none;
+  min-height: auto;
+  overflow: visible;
+}

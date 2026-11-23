@@ -198,7 +198,7 @@ it('upgrades a populated v19 source and preserves its identity, decision and att
   const upgraded = openConnection(file);
   try {
     expect(runMigrations(upgraded).appliedVersions).toEqual([
-      20, 21, 22, 23, 24,
+      20, 21, 22, 23, 24, 25, 26,
     ]);
     const nextRepo = new DiscoveryRunsRepository(upgraded);
     const nextService = new DiscoveryRunsService(

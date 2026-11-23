@@ -1375,7 +1375,9 @@ it('preserves a populated v20 claimed attempt without inventing query or URL his
   oldRepo.finish(oldRun.id, 'completed', new Date(now).toISOString());
   db.close();
   const upgraded = openConnection(file);
-  expect(runMigrations(upgraded).appliedVersions).toEqual([21, 22, 23, 24]);
+  expect(runMigrations(upgraded).appliedVersions).toEqual([
+    21, 22, 23, 24, 25, 26,
+  ]);
   const restored = new DiscoveryRunsRepository(upgraded);
   expect(
     restored.resolutionDiagnostics(
@@ -1442,7 +1444,7 @@ it('upgrades a populated v11 candidate without resetting its source or decision'
   db.close();
   const upgraded = openConnection(path.join(dir, 'legacy.sqlite'));
   expect(runMigrations(upgraded).appliedVersions).toEqual([
-    12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+    12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
   ]);
   const row = upgraded
     .prepare(

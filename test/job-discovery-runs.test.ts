@@ -15,6 +15,7 @@ import { WebService } from '../src/main/modules/web/web.service';
 import { createDispatcher } from '../src/main/ipc/dispatcher';
 import { createJobDiscoveryModule } from '../src/main/modules/job-discovery/job-discovery.module';
 import {
+  jobDiscoveryConfigurationV1Schema,
   newJobDiscoveryConfiguration,
   type JobDiscoveryConfigurationV1,
 } from '../src/shared/contracts';
@@ -116,6 +117,124 @@ describe('deterministic query planning', () => {
     value.intent.location = null;
     value.query.maxQueries = 5;
     expect(() => planQueries(value)).toThrow();
+  });
+  it('adds remote or hybrid as a search term, never on-site, and accepts older configs without it', () => {
+    const value = config();
+    value.intent.companies = [];
+    value.intent.keywords = [];
+    value.intent.workArrangement = 'remote';
+    expect(planQueries(value).every((q) => q.includes('remote'))).toBe(true);
+    value.intent.workArrangement = 'hybrid';
+    expect(planQueries(value).every((q) => q.includes('hybrid'))).toBe(true);
+    value.intent.workArrangement = 'on_site';
+    const onSite = planQueries(value);
+    expect(onSite.some((q) => /on.?site|remote|hybrid/i.test(q))).toBe(false);
+    delete value.intent.workArrangement;
+    expect(planQueries(value)).toEqual(onSite);
+    expect(
+      jobDiscoveryConfigurationV1Schema.safeParse({
+        ...value,
+        intent: { ...value.intent, workArrangement: 'sometimes' },
+      }).success,
+    ).toBe(false);
+  });
+  it('stores a work arrangement on saved searches and run snapshots, and SQL rejects unknown values', async () => {
+    const value = config();
+    value.intent.workArrangement = 'hybrid';
+    const saved = searches.create({ config: value });
+    expect(searches.get({ id: saved.id }).config.intent.workArrangement).toBe(
+      'hybrid',
+    );
+    const started = await send('start', { savedSearchId: saved.id });
+    expect(started.ok).toBe(true);
+    const broken = JSON.parse(
+      (
+        storage.db
+          .prepare('SELECT config_json FROM job_saved_searches WHERE id = ?')
+          .get(saved.id) as { config_json: string }
+      ).config_json,
+    );
+    broken.intent.workArrangement = 'sometimes';
+    expect(() =>
+      storage.db
+        .prepare('UPDATE job_saved_searches SET config_json = ? WHERE id = ?')
+        .run(JSON.stringify(broken), saved.id),
+    ).toThrow(/invalid job discovery configuration/);
+  });
+  it('plans across several locations and levels, adding one-off setup and contract terms (ADR 006)', () => {
+    const value = config();
+    value.intent.companies = [];
+    value.intent.keywords = [];
+    value.intent.seniority = null;
+    value.intent.targetRoles = ['Product Designer', 'UX Designer'];
+    value.intent.locations = ['London', 'Manchester'];
+    value.intent.location = 'London';
+    value.intent.experienceLevels = ['senior', 'expert'];
+    const plan = planQueries(value);
+    expect(plan).toHaveLength(4);
+    expect(plan.some((q) => q.includes('Manchester'))).toBe(true);
+    expect(plan.some((q) => q.startsWith('UX Designer'))).toBe(true);
+    expect(plan.some((q) => / senior/.test(q))).toBe(true);
+    expect(plan.some((q) => / lead/.test(q))).toBe(true);
+    value.intent.workArrangements = ['remote'];
+    value.intent.contractTypes = ['part_time'];
+    expect(
+      planQueries(value).every(
+        (q) => q.includes('remote') && q.includes('part time'),
+      ),
+    ).toBe(true);
+    value.intent.workArrangements = ['remote', 'hybrid'];
+    value.intent.contractTypes = ['full_time', 'contract'];
+    expect(
+      planQueries(value).some((q) => /remote|hybrid|contract/.test(q)),
+    ).toBe(false);
+  });
+  it('stores search preferences, and SQL rejects unknown values (ADR 006)', () => {
+    const value = config();
+    value.intent.locations = ['London', 'Leeds'];
+    value.intent.workArrangements = ['hybrid', 'remote'];
+    value.intent.experienceLevels = ['mid', 'senior'];
+    value.intent.contractTypes = ['full_time'];
+    value.intent.salary = {
+      minimum: 60000,
+      currency: 'GBP',
+      onlyWithSalary: true,
+    };
+    const saved = searches.create({ config: value });
+    expect(searches.get({ id: saved.id }).config.intent).toMatchObject({
+      locations: ['London', 'Leeds'],
+      salary: { minimum: 60000, currency: 'GBP', onlyWithSalary: true },
+    });
+    expect(
+      jobDiscoveryConfigurationV1Schema.safeParse({
+        ...value,
+        intent: { ...value.intent, locations: ['London', 'london'] },
+      }).success,
+    ).toBe(false);
+    const read = () =>
+      JSON.parse(
+        (
+          storage.db
+            .prepare('SELECT config_json FROM job_saved_searches WHERE id = ?')
+            .get(saved.id) as { config_json: string }
+        ).config_json,
+      );
+    const write = (next: unknown) =>
+      storage.db
+        .prepare('UPDATE job_saved_searches SET config_json = ? WHERE id = ?')
+        .run(JSON.stringify(next), saved.id);
+    for (const broken of [
+      { experienceLevels: ['wizard'] },
+      { contractTypes: ['full_time', 'full_time'] },
+      { locations: ['Leeds', 'LEEDS'] },
+      { salary: { minimum: -1, currency: 'GBP', onlyWithSalary: false } },
+      { salary: { minimum: 1, currency: 'JPY', onlyWithSalary: false } },
+      { somethingElse: true },
+    ]) {
+      const next = read();
+      Object.assign(next.intent, broken);
+      expect(() => write(next)).toThrow(/invalid job discovery configuration/);
+    }
   });
 });
 

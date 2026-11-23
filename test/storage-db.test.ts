@@ -37,9 +37,9 @@ describe('migration runner', () => {
     try {
       expect(migration.appliedVersions).toEqual([
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-        21, 22, 23, 24,
+        21, 22, 23, 24, 25, 26,
       ]);
-      expect(migration.currentVersion).toBe(24);
+      expect(migration.currentVersion).toBe(26);
 
       const tables = db
         .prepare(
@@ -104,7 +104,7 @@ describe('migration runner', () => {
     const second = openDatabase(file);
     try {
       expect(second.migration.appliedVersions).toEqual([]);
-      expect(second.migration.currentVersion).toBe(24);
+      expect(second.migration.currentVersion).toBe(26);
       const profiles = second.db
         .prepare('SELECT COUNT(*) AS count FROM profiles')
         .get() as CountRow;

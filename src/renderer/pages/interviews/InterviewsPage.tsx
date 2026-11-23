@@ -25,6 +25,7 @@ import {
 } from './navigation';
 import { PrepareTab } from './prepare/PrepareTab';
 import { SessionOutlet } from './session/SessionOutlet';
+import type { PracticePreset } from './prepare/preset';
 import './InterviewsPage.css';
 
 const tabs: readonly PillTab<InterviewsTab>[] = [
@@ -41,9 +42,12 @@ function tabLabel(tab: InterviewsTab) {
 export function InterviewsPage({
   initialLocation,
   onNavigate,
+  preset,
 }: {
   initialLocation?: InterviewsLocation;
   onNavigate?: (next: Destination) => void;
+  /** Fills in the Prepare form, e.g. a mock interview for one role. */
+  preset?: PracticePreset;
 }) {
   const { location, selectTab, openSession, leaveSession } =
     useInterviewsNavigation(initialLocation);
@@ -143,6 +147,7 @@ export function InterviewsPage({
               <PrepareTab
                 onOpenSession={enterSession}
                 onOpenLocalAi={openLocalAi}
+                preset={preset}
               />
             ) : location.tab === 'history' ? (
               <HistoryTab onOpenSession={enterSession} />

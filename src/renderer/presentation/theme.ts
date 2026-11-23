@@ -1,0 +1,43 @@
+/**
+ * Two interfaces share one back end: Meadow (the default) and GND
+ * (presentation/gnd). The choice is per computer, kept in local storage, and
+ * applied before the first render so the page never flashes the other theme.
+ */
+export const THEMES = [
+  { id: 'meadow', label: 'Meadow' },
+  { id: 'gnd', label: 'GND' },
+] as const;
+export type ThemeId = (typeof THEMES)[number]['id'];
+
+const KEY = 'kompas.theme';
+const isTheme = (value: unknown): value is ThemeId =>
+  THEMES.some((theme) => theme.id === value);
+
+/** `?theme=gnd` in the URL wins (handy for previews), then the saved choice. */
+export function readTheme(): ThemeId {
+  try {
+    const fromUrl = new URLSearchParams(window.location.search).get('theme');
+    if (isTheme(fromUrl)) return fromUrl;
+    const saved = window.localStorage.getItem(KEY);
+    if (isTheme(saved)) return saved;
+  } catch {
+    // Storage unavailable: use the default.
+  }
+  return 'meadow';
+}
+
+export function applyTheme(theme: ThemeId): void {
+  document.documentElement.dataset.theme = theme;
+}
+
+/** Save the choice and reload, so the whole app swaps interface cleanly. */
+export function switchTheme(theme: ThemeId): void {
+  try {
+    window.localStorage.setItem(KEY, theme);
+  } catch {
+    // Not saved; the reload below still shows the current choice.
+  }
+  const url = new URL(window.location.href);
+  url.searchParams.delete('theme');
+  window.location.replace(url.toString());
+}

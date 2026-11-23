@@ -1,0 +1,163 @@
+/* GND Home, measured from the 1280px design. */
+.gnd-home {
+  display: flex;
+  flex-direction: column;
+}
+.gnd-home-head {
+  display: grid;
+  grid-template-columns: 1fr minmax(260px, 450px);
+  align-items: end;
+  gap: 24px;
+  margin: 8px 0 28px;
+}
+.gnd-home-hello {
+  margin: 0 0 10px;
+  font-family: var(--font-family-display);
+  font-size: 17px;
+  color: var(--text-muted);
+}
+.gnd-home-title {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-weight: var(--weight-medium);
+  font-size: clamp(44px, 5.3vw, 68px);
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+.gnd-home-search {
+  align-self: center;
+  margin-top: 30px;
+}
+.gnd-role-search-message {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--error);
+}
+
+.gnd-home-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.gnd-for-you,
+.gnd-next-interview {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 234px;
+  border-radius: 16px;
+  padding: 24px;
+}
+.gnd-for-you {
+  background: var(--accent-surface);
+  color: #fff;
+}
+.gnd-for-you-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 14px;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.gnd-for-you-eyebrow svg {
+  width: 14px;
+  height: 14px;
+}
+.gnd-for-you h2 {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-weight: var(--weight-bold);
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.gnd-for-you p:not(.gnd-for-you-eyebrow) {
+  margin: 14px 0 14px;
+  font-size: 14px;
+}
+.gnd-for-you .ui-button {
+  margin-top: auto;
+}
+.gnd-for-you-loading {
+  opacity: 0.7;
+}
+
+.gnd-next-interview {
+  background: var(--surface-card);
+}
+.gnd-next-interview > p:first-child,
+.gnd-next-interview-head p {
+  margin: 8px 0 0;
+  font-size: 14px;
+}
+.gnd-next-interview-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+.gnd-next-interview-head .gnd-badge {
+  margin-top: 30px;
+}
+.gnd-next-interview h2 {
+  margin: 14px 0 12px;
+  font-family: var(--font-family-display);
+  font-weight: var(--weight-medium);
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+.gnd-next-interview .gnd-muted {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+.gnd-next-interview .ui-button {
+  margin-top: auto;
+}
+
+.gnd-home-matches-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 40px 0 16px;
+}
+.gnd-home-matches-head .gnd-section-title {
+  font-size: clamp(22px, 2vw, 26px);
+}
+
+@media (max-width: 860px) {
+  .gnd-home-head,
+  .gnd-home-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Empty next-interview card: an invitation to practise. */
+.gnd-next-interview > p.gnd-next-interview-eyebrow {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.gnd-next-interview-eyebrow + h2 {
+  font-weight: var(--weight-bold);
+}
+.gnd-next-interview-eyebrow ~ .gnd-muted {
+  max-width: 34ch;
+  line-height: 1.5;
+}
+.gnd-home .gnd-quick {
+  margin-top: 40px;
+}
+
+.gnd-home-greeting {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.gnd-home-buddy {
+  flex: none;
+  margin-top: 6px;
+}

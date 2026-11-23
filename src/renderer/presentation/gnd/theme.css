@@ -1,0 +1,126 @@
+/* GND theme: fonts and the token seam values. Applied only while GND is the
+   chosen interface (<html data-theme="gnd">), so Meadow keeps its own look.
+   Everything else in this folder uses gnd- prefixed classes. */
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('./fonts/Space_Grotesk/space-grotesk-latin-wght-normal.woff2')
+    format('woff2');
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('./fonts/Space_Grotesk/space-grotesk-latin-ext-wght-normal.woff2')
+    format('woff2');
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('./fonts/Inter/inter-latin-wght-normal.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('./fonts/Inter/inter-latin-ext-wght-normal.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('./fonts/Inter/inter-latin-wght-italic.woff2') format('woff2');
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('./fonts/Inter/inter-latin-ext-wght-italic.woff2') format('woff2');
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root[data-theme='gnd'] {
+  --font-family-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-family-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-family-label: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-family-alternative: 'Space Grotesk', ui-sans-serif, sans-serif;
+  font-family: var(--font-family-body);
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+  --canvas: #f5f3eb;
+  --surface: #fdfcf8;
+  --surface-raised: #ffffff;
+  --text-primary: #24251f;
+  --text-muted: #64665e;
+  --accent: #0026ff;
+  --accent-soft: #d3dafa;
+  --accent-ink: #0026ff;
+  --text-on-accent: #ffffff;
+  --success: #2f6b45;
+  --warning: #885819;
+  --error: #b42335;
+  --error-soft: #fbeaec;
+  --border: #d5d5c9;
+  --border-soft: #e4e3da;
+  --surface-card: #f5f5f0;
+  --accent-surface: #284ae8;
+  --note-bg: #fbf4e4;
+  --note-ink: #7a5a14;
+  --shadow: 0 16px 48px #24251f1a;
+  --card-shadow: 0 8px 24px #24251f0f;
+  --button-shadow: 0 6px 18px #0026ff33;
+  --font-small: 0.8125rem;
+  --font-body: 1rem;
+  --font-lead: 1.25rem;
+  --font-heading: clamp(2.5rem, 6vw, 4.5rem);
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-bold: 700;
+  --space-1: 0.5rem;
+  --space-2: 0.75rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2rem;
+  --radius-small: 12px;
+  --radius-large: 16px;
+  --motion-fast: 160ms;
+  --motion-page: 260ms;
+  --focus-ring: #0026ff;
+}
+:root[data-theme='gnd'] ::selection {
+  background: var(--accent-soft);
+  color: var(--text-primary);
+}

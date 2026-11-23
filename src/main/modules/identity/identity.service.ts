@@ -107,6 +107,9 @@ export class IdentityService {
       changes.location = emptyToNull(patch.location);
     }
 
+    if (has(patch, 'avatar')) {
+      changes.avatar = patch.avatar ?? null;
+    }
     if (has(patch, 'summary')) {
       changes.summary = emptyToNull(patch.summary);
     }

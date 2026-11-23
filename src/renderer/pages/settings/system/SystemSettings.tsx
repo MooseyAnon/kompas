@@ -13,6 +13,7 @@ import { getInferenceHardware, systemPing } from '../../../api';
 import { Button } from '../../../presentation/components/Button';
 import { Card } from '../../../presentation/components/Card';
 import { Disclosure } from '../../../presentation/components/Disclosure';
+import { ThemeSwitch } from '../../../presentation/ThemeSwitch';
 import { errorText } from '../shared';
 import './SystemSettings.css';
 
@@ -150,6 +151,7 @@ export function SystemSettings({
           Refresh
         </Button>
       </div>
+      <ThemeSwitch />
       {load.state === 'loading' && (
         <p role="status">Reading system information…</p>
       )}

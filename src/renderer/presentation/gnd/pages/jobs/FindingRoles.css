@@ -1,0 +1,215 @@
+.gnd-finding {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  padding: 26px clamp(20px, 5vw, 56px) 60px;
+  background-color: var(--canvas);
+  background-image:
+    radial-gradient(60% 50% at 100% 0%, #c9f2e1 0%, rgb(201 242 225 / 0%) 70%),
+    radial-gradient(50% 45% at 85% 100%, #eadcf3 0%, rgb(234 220 243 / 0%) 70%);
+  color: var(--text-primary);
+}
+.gnd-finding-logo {
+  align-self: center;
+  color: var(--accent);
+  font-family: var(--font-family-display);
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+.gnd-finding-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  width: min(640px, 100%);
+  margin: 56px auto 0;
+  text-align: center;
+}
+.gnd-finding-titles {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.gnd-finding-titles .gnd-page-title,
+.gnd-finding-titles p {
+  margin: 0;
+}
+.gnd-finding-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.gnd-finding-num {
+  color: var(--accent);
+  font-family: var(--font-family-display);
+  font-size: 120px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  animation: gnd-finding-bump 420ms cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+.gnd-finding-bar {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--border-soft);
+}
+.gnd-finding-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 900ms ease;
+}
+.gnd-finding-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.gnd-finding-steps li {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 16px 18px;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  background: var(--surface);
+  animation: gnd-finding-in 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.gnd-finding-steps li.is-done {
+  border-color: transparent;
+  background: transparent;
+}
+.gnd-finding-knob {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-top: 1px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  color: #fff;
+}
+.gnd-finding-knob svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 3;
+}
+.is-now .gnd-finding-knob {
+  border-color: var(--accent-soft);
+  border-top-color: var(--accent);
+  animation: gnd-finding-spin 900ms linear infinite;
+}
+.is-done .gnd-finding-knob {
+  background: var(--accent);
+  animation: gnd-finding-pop 360ms cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+.gnd-finding-step {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.is-done .gnd-finding-step {
+  color: var(--text-muted);
+}
+.gnd-finding-summary {
+  margin: 2px 0 0;
+  font-size: 14px;
+}
+.gnd-finding-ticker {
+  position: relative;
+  height: 22px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+.gnd-finding-ticker span {
+  position: absolute;
+  inset: 0 0 auto;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gnd-finding-ticker .is-in {
+  animation: gnd-tick-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.gnd-finding-ticker .is-out {
+  animation: gnd-tick-out 420ms cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+.gnd-finding-stop {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 15px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+@keyframes gnd-finding-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+@keyframes gnd-finding-bump {
+  from {
+    opacity: 0.5;
+    transform: scale(0.86);
+  }
+}
+@keyframes gnd-finding-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes gnd-finding-pop {
+  from {
+    transform: scale(0.4);
+  }
+}
+@keyframes gnd-tick-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+@keyframes gnd-tick-out {
+  to {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gnd-finding-num,
+  .gnd-finding-steps li,
+  .is-now .gnd-finding-knob,
+  .is-done .gnd-finding-knob,
+  .gnd-finding-ticker span {
+    animation: none;
+  }
+  .gnd-finding-bar span {
+    transition: none;
+  }
+}
+
+.gnd-finding-buddy {
+  margin: 56px 0 4px;
+}

@@ -1,0 +1,337 @@
+/* Profile picture */
+.gnd-avatar-button {
+  position: relative;
+  flex: none;
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+.gnd-avatar-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.gnd-avatar-edit {
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  opacity: 0;
+  transition: opacity var(--motion-fast, 120ms);
+}
+.gnd-avatar-button:hover .gnd-avatar-edit,
+.gnd-avatar-button:focus-visible .gnd-avatar-edit {
+  opacity: 1;
+}
+.gnd-avatar-edit svg {
+  width: 12px;
+  height: 12px;
+}
+.gnd-mascot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.gnd-mascot-option {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  padding: 10px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast, 120ms),
+    border-color var(--motion-fast, 120ms);
+}
+.gnd-mascot-option:hover {
+  transform: scale(1.05);
+}
+.gnd-mascot-option[aria-pressed='true'] {
+  border-color: var(--accent);
+}
+.gnd-mascot-option img {
+  width: 82%;
+  height: 82%;
+  margin-top: 8%;
+  object-fit: contain;
+}
+.gnd-mascot-tick {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+}
+.gnd-mascot-tick svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 3;
+}
+.gnd-avatar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+.gnd-avatar-actions svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Skills: chips and a search box with suggestions underneath. */
+.gnd-skill-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: -82px;
+}
+.gnd-skill-picker .gnd-skill-chips {
+  margin-left: 0;
+}
+.gnd-skill-picker .gnd-skill-chip {
+  gap: 2px;
+  padding-right: 3px;
+}
+.gnd-skill-chip button {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  opacity: 0.55;
+  cursor: pointer;
+}
+.gnd-skill-chip button:hover {
+  background: rgb(0 0 0 / 6%);
+  opacity: 1;
+}
+.gnd-skill-chip svg,
+.gnd-skill-add svg {
+  width: 11px;
+  height: 11px;
+}
+.gnd-skill-add {
+  gap: 4px;
+}
+.gnd-skill-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 460px;
+}
+.gnd-skill-search .gnd-input {
+  height: 40px;
+  padding-left: 38px;
+  font-size: 14px;
+}
+.gnd-skill-search-icon {
+  position: absolute;
+  left: 13px;
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.gnd-skill-done {
+  flex: none;
+  height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.gnd-skill-search .gnd-pref-options {
+  right: 72px;
+}
+.gnd-skill-picker .gnd-form-error {
+  max-width: 460px;
+}
+
+/* Experience */
+.gnd-experience {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.gnd-experience .gnd-link svg {
+  width: 16px;
+  height: 16px;
+}
+.gnd-experience-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gnd-experience-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  background: #ffffff59;
+}
+.gnd-experience-row h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.gnd-experience-row .gnd-muted {
+  margin: 0;
+  font-size: 13px;
+}
+.gnd-experience-actions {
+  display: flex;
+  flex: none;
+  align-items: baseline;
+  gap: 12px;
+}
+.gnd-experience-actions .gnd-muted {
+  margin: 0;
+  font-size: 13px;
+}
+.gnd-experience-actions .gnd-link {
+  font-size: 13px;
+}
+.gnd-link.is-quiet {
+  color: var(--text-muted);
+}
+
+/* Documents, under the jobs applied count */
+.gnd-docs-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.gnd-docs-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.gnd-applications-side .gnd-docs-head h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.gnd-docs-add {
+  position: relative;
+}
+.gnd-docs-add .gnd-link svg {
+  width: 16px;
+  height: 16px;
+}
+.gnd-docs-menu {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 160px;
+  margin: 0;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 12px 32px rgb(20 20 10 / 12%);
+  list-style: none;
+}
+.gnd-docs-menu button {
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.gnd-docs-menu button:hover {
+  background: rgb(0 38 255 / 7%);
+  color: var(--accent);
+}
+.gnd-docs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gnd-docs-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: #ffffff59;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.gnd-docs-row:hover {
+  border-color: var(--accent);
+}
+.gnd-docs-row svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--accent);
+}
+.gnd-docs-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gnd-docs-type {
+  flex: none;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.gnd-applications-side .gnd-docs-panel p {
+  margin: 0;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .gnd-skill-picker {
+    margin-left: 0;
+  }
+}

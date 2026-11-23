@@ -1,0 +1,68 @@
+/* GND shell: a fixed top bar and one scrolling page beneath it. Page width
+   and gutters come from the Home design (content 995px inside 1106px). */
+.gnd-shell {
+  --page-max: 1180px;
+  --page-gutter: clamp(20px, 5vw, 56px);
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  isolation: isolate;
+}
+.gnd-shell .glow-backdrop {
+  position: fixed;
+}
+.gnd-shell-mac .gnd-topnav {
+  padding-top: 38px;
+}
+.gnd-shell-windows .gnd-topnav {
+  padding-right: max(var(--page-gutter), 152px);
+}
+
+.gnd-shell-content {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+.gnd-shell-content > * {
+  width: min(100%, var(--page-max));
+  margin: 0 auto;
+  padding: 36px var(--page-gutter) 72px;
+  animation: gnd-page-arrive var(--motion-page) ease-out both;
+}
+/* Interviews (shared with Meadow) manages its own inner scrolling; give it
+   the full height. */
+.gnd-shell-page-interviews .gnd-shell-content {
+  display: flex;
+  overflow: hidden;
+}
+.gnd-shell-page-interviews .gnd-shell-content > * {
+  flex: 1;
+  max-width: var(--page-max);
+  min-height: 0;
+  padding-top: 20px;
+  padding-bottom: 24px;
+  /* A transformed ancestor would trap fixed dialogs inside the page. */
+  animation: none;
+}
+.gnd-shell-companion {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  pointer-events: none;
+}
+@keyframes gnd-page-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

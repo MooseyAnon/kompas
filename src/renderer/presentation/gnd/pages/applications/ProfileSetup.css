@@ -1,0 +1,90 @@
+/* Profile before a CV: upload one, or answer a few questions. */
+.gnd-setup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.gnd-setup-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 300px;
+  padding: 36px 28px;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  background: #eeede6;
+  text-align: center;
+}
+.gnd-setup-card.is-upload {
+  border: 1.5px dashed #c9c8bd;
+}
+.gnd-setup-card h3 {
+  margin: 8px 0 0;
+  font-family: var(--font-family-display);
+  font-size: 30px;
+  font-weight: var(--weight-medium);
+  letter-spacing: -0.02em;
+}
+.gnd-setup-card .gnd-muted {
+  margin: 0;
+  font-size: 16px;
+}
+.gnd-setup-card .ui-button {
+  margin-top: 14px;
+  min-width: 200px;
+  background: var(--surface);
+}
+.gnd-setup-card .ui-button svg {
+  width: 18px;
+  height: 18px;
+}
+.gnd-setup-icon {
+  width: 40px;
+  height: 40px;
+  stroke-width: 1.6;
+}
+.gnd-setup-art {
+  width: 200px;
+  height: auto;
+  margin-bottom: 4px;
+}
+.gnd-setup-hint {
+  max-width: 34ch;
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* A few questions */
+.gnd-quick-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: min(520px, 80vw);
+}
+.gnd-quick-profile .gnd-seg {
+  align-self: flex-start;
+}
+.gnd-quick-profile .gnd-skill-picker {
+  margin-left: 0;
+}
+.gnd-quick-profile .gnd-skill-chip {
+  height: 26px;
+  font-size: 13px;
+}
+.gnd-quick-profile .gnd-skill-add {
+  height: 30px;
+  font-size: 13px;
+}
+.gnd-quick-actions {
+  display: flex;
+  gap: 10px;
+}
+
+@media (max-width: 760px) {
+  .gnd-setup {
+    grid-template-columns: 1fr;
+  }
+}

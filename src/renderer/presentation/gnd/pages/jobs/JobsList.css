@@ -1,0 +1,155 @@
+/* GND "Search your next role", measured from the 1174px design frame. */
+.gnd-jobs {
+  display: flex;
+  flex-direction: column;
+}
+.gnd-jobs-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  margin: 18px 0 30px;
+  text-align: center;
+}
+.gnd-jobs-search {
+  width: min(100%, 476px);
+  text-align: left;
+}
+.gnd-jobs-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18px 0 16px;
+}
+.gnd-jobs-section-head .gnd-section-title {
+  font-size: clamp(22px, 2vw, 24px);
+}
+.gnd-jobs .gnd-job-grid + .gnd-jobs-section-head {
+  margin-top: 40px;
+}
+
+/* Search box with the Filters button beside it. */
+.gnd-jobs-titles {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.gnd-jobs-titles .gnd-page-title,
+.gnd-jobs-titles .gnd-eyebrow {
+  margin: 0;
+}
+.gnd-jobs-tools {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 10px;
+  width: min(100%, 600px);
+}
+.gnd-jobs-tools .gnd-jobs-search {
+  flex: 1;
+  width: auto;
+}
+.gnd-filters-button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  height: 45px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.gnd-filters-button:hover {
+  border-color: var(--accent);
+}
+.gnd-filters-button svg {
+  width: 18px;
+  height: 18px;
+}
+.gnd-jobs-fineprint {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 18px;
+  margin: -14px 0 10px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.gnd-jobs-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--note-ink);
+}
+.gnd-jobs-warning svg {
+  width: 16px;
+  height: 16px;
+}
+.gnd-jobs-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 24px;
+  border-radius: 16px;
+  background: var(--surface-card);
+  text-align: center;
+}
+.gnd-jobs-empty p {
+  max-width: 52ch;
+  margin: 0;
+  color: var(--text-muted);
+}
+
+/* Preferences on the left, roles on the right (wide windows only). */
+.gnd-jobs-layout {
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+}
+.gnd-jobs-side {
+  position: sticky;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: calc(100vh - 120px);
+  padding: 22px 22px 20px;
+  overflow-y: auto;
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.gnd-jobs-main {
+  min-width: 0;
+}
+.gnd-jobs-main > .gnd-jobs-section-head:first-child,
+.gnd-jobs-main > .gnd-jobs-fineprint:first-child {
+  margin-top: 0;
+}
+.gnd-jobs-hidden {
+  margin: 0 0 14px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+@media (max-width: 1000px) {
+  .gnd-jobs-layout {
+    grid-template-columns: 1fr;
+  }
+  .gnd-jobs-side {
+    display: none;
+  }
+}
+@media (min-width: 1001px) {
+  .gnd-jobs-tools .gnd-filters-button {
+    display: none;
+  }
+}

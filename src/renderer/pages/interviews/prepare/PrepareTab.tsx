@@ -37,6 +37,7 @@ import {
   type PrepareController,
 } from './usePrepareController';
 import './PrepareTab.css';
+import type { PracticePreset } from './preset';
 
 const methodOptions: readonly MethodChoiceOption<InterviewMethod>[] = [
   {
@@ -84,11 +85,13 @@ function targetLabel(target: Target) {
 export function PrepareTab({
   onOpenSession,
   onOpenLocalAi,
+  preset,
 }: {
   onOpenSession: OpenSession;
   onOpenLocalAi: () => void;
+  preset?: PracticePreset;
 }) {
-  const controller = usePrepareController(onOpenSession);
+  const controller = usePrepareController(onOpenSession, preset);
   const { values, editor, busy, fieldErrors } = controller;
 
   const editing = editor.kind === 'editing' ? editor.session : null;

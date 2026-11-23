@@ -1,0 +1,46 @@
+/* Interface picker in Settings › System; styled from the active tokens. */
+.theme-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface-raised);
+}
+.theme-switch legend {
+  float: left;
+  padding: 0;
+  font-family: var(--font-family-display);
+  font-weight: var(--weight-bold);
+}
+.theme-switch-options {
+  display: flex;
+  gap: var(--space-1);
+}
+.theme-switch-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.theme-switch-option:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.theme-switch-option input {
+  accent-color: var(--accent);
+  margin: 0;
+}
+.theme-switch-help {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-small);
+}

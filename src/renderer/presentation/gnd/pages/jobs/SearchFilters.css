@@ -1,0 +1,232 @@
+.gnd-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 48px;
+}
+.gnd-filters-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.gnd-filters-head .gnd-page-title {
+  margin: 0 0 10px;
+}
+.gnd-filters-head .gnd-muted {
+  max-width: 60ch;
+  margin: 0;
+}
+.gnd-filters-head svg {
+  width: 18px;
+  height: 18px;
+}
+.gnd-filters-intro {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin: 0;
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: #eef1fd;
+  color: #1b2a8f;
+  font-size: 14px;
+}
+.gnd-filters-intro svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+.gnd-filters-body {
+  width: min(100%, 720px);
+}
+.gnd-filters-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+.gnd-filters-form {
+  display: flex;
+  flex-direction: column;
+}
+.gnd-filters-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 26px 0;
+  border-top: 1px solid var(--border);
+}
+.gnd-filters-sec:first-child {
+  padding-top: 4px;
+  border-top: 0;
+}
+.gnd-filters-h {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.gnd-filters-h .gnd-muted {
+  font-weight: 400;
+}
+.gnd-filters-half {
+  max-width: 50%;
+}
+.gnd-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.gnd-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 8px 0 12px;
+  border-radius: 8px;
+  background: rgb(0 38 255 / 7%);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 500;
+}
+.gnd-chip.is-suggested {
+  background: var(--note-bg);
+  color: var(--note-ink);
+}
+.gnd-chip button {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.gnd-chip button:hover {
+  background: rgb(0 0 0 / 6%);
+}
+.gnd-chip svg,
+.gnd-chip-add svg,
+.gnd-chip-cancel svg {
+  width: 14px;
+  height: 14px;
+}
+.gnd-chip-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px dashed #8f8f88;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.gnd-chip-add:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.gnd-chip-adding {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.gnd-chip-adding .gnd-input {
+  width: 260px;
+  height: 36px;
+  font-size: 14px;
+}
+.gnd-chip-confirm {
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.gnd-chip-cancel {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.gnd-filters-check {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.gnd-filters-check input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.gnd-filters-box {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #b5b5ad;
+  border-radius: 6px;
+  color: transparent;
+}
+.gnd-filters-box svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 3;
+}
+.gnd-filters-check input:checked + .gnd-filters-box {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+.gnd-filters-check input:focus-visible + .gnd-filters-box {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.gnd-filters-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--surface-card);
+  font-size: 14px;
+}
+.gnd-filters-tips p {
+  margin: 0;
+}
+@media (max-width: 860px) {
+  .gnd-filters-body {
+    width: min(100%, 720px);
+  }
+  .gnd-filters-grid {
+    grid-template-columns: 1fr;
+  }
+}

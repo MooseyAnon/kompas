@@ -84,7 +84,7 @@ describe('migration on a populated (pre-existing) install', () => {
       db.prepare(
         "UPDATE experiences SET start_date='2020-01-01', end_date='2022-06-30' WHERE id='exp-1'",
       ).run();
-      expect(runMigrations(db).appliedVersions).toEqual([23, 24]);
+      expect(runMigrations(db).appliedVersions).toEqual([23, 24, 25, 26]);
       expect(
         db
           .prepare(
@@ -157,7 +157,7 @@ describe('migration on a populated (pre-existing) install', () => {
       ).toEqual(before);
 
       expect(runMigrations(db).appliedVersions).toEqual([
-        19, 20, 21, 22, 23, 24,
+        19, 20, 21, 22, 23, 24, 25, 26,
       ]);
       const after = db
         .prepare('SELECT * FROM interview_sessions ORDER BY id')
@@ -219,7 +219,7 @@ describe('migration on a populated (pre-existing) install', () => {
           .get(),
       ).toEqual({ status: 'active', phase: 'awaiting_review' });
       expect(runMigrations(db).appliedVersions).toEqual([
-        18, 19, 20, 21, 22, 23, 24,
+        18, 19, 20, 21, 22, 23, 24, 25, 26,
       ]);
       expect(
         db
@@ -267,7 +267,7 @@ describe('migration on a populated (pre-existing) install', () => {
           .get(),
       ).toBeUndefined();
       expect(runMigrations(db, MIGRATIONS).appliedVersions).toEqual([
-        17, 18, 19, 20, 21, 22, 23, 24,
+        17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
       ]);
       expect(
         db
@@ -317,7 +317,7 @@ describe('migration on a populated (pre-existing) install', () => {
       );
 
       expect(runMigrations(db, MIGRATIONS).appliedVersions).toEqual([
-        16, 17, 18, 19, 20, 21, 22, 23, 24,
+        16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
       ]);
       const rows = db
         .prepare(
@@ -370,7 +370,7 @@ describe('migration on a populated (pre-existing) install', () => {
         TS,
       );
 
-      expect(runMigrations(db).appliedVersions).toEqual([24]);
+      expect(runMigrations(db).appliedVersions).toEqual([24, 25, 26]);
       expect(
         db
           .prepare('SELECT config_json FROM job_saved_searches WHERE id=?')
@@ -439,7 +439,7 @@ describe('migration on a populated (pre-existing) install', () => {
       );
       const result = runMigrations(db, MIGRATIONS);
       expect(result.appliedVersions).toEqual([
-        14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+        14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
       ]);
       expect(
         db
@@ -461,8 +461,8 @@ describe('migration on a populated (pre-existing) install', () => {
     const storage = openStorage(workDir);
     try {
       // Upgrade once; reopening must not reapply the classification.
-      expect(storage.migration.appliedVersions).toEqual([22, 23, 24]);
-      expect(storage.migration.currentVersion).toBe(24);
+      expect(storage.migration.appliedVersions).toEqual([22, 23, 24, 25, 26]);
+      expect(storage.migration.currentVersion).toBe(26);
 
       const db = storage.db;
       const profile = db
@@ -503,7 +503,7 @@ describe('migration on a populated (pre-existing) install', () => {
         TS,
       );
       const next = {
-        version: 25,
+        version: 27,
         name: 'test_add_note',
         sql: 'ALTER TABLE profiles ADD COLUMN notes TEXT;',
       };
@@ -511,8 +511,10 @@ describe('migration on a populated (pre-existing) install', () => {
 
       // The populated v17 install takes the real recovery and guidance
       // migrations, then the test migration.
-      expect(result.appliedVersions).toEqual([18, 19, 20, 21, 22, 23, 24, 25]);
-      expect(result.currentVersion).toBe(25);
+      expect(result.appliedVersions).toEqual([
+        18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
+      ]);
+      expect(result.currentVersion).toBe(27);
 
       const profile = db
         .prepare('SELECT display_name, notes FROM profiles WHERE id = ?')
@@ -548,7 +550,7 @@ describe('migration on a populated (pre-existing) install', () => {
     const db = openConnection(dbFile());
     try {
       const badNext = {
-        version: 25,
+        version: 27,
         name: 'test_broken',
         sql: 'ALTER TABLE profiles ADD COLUMN notes TEXT; INSERT INTO missing_table (id) VALUES (1);',
       };
@@ -560,7 +562,7 @@ describe('migration on a populated (pre-existing) install', () => {
           'SELECT COALESCE(MAX(version),0) AS count FROM schema_migrations',
         )
         .get() as CountRow;
-      expect(version.count).toBe(24);
+      expect(version.count).toBe(26);
 
       const columns = db.prepare('PRAGMA table_info(profiles)').all() as Array<{
         name: string;

@@ -1,0 +1,169 @@
+/* Colours sampled from the GND background artwork. Each glow is a radial
+   gradient (no blur filter) moved with transforms only, so it stays cheap. */
+.glow-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: #f5f3eb;
+}
+
+.glow {
+  position: absolute;
+  left: calc(var(--x) - var(--size) / 2);
+  top: calc(var(--y) - var(--size) / 2);
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--tint) 0%, transparent 70%);
+  will-change: transform;
+  animation: glow-drift var(--glow-duration, 28s) ease-in-out infinite alternate;
+}
+
+/* --x/--y place each glow's centre; matches the artwork at 1280×855. */
+.glow-mint-high {
+  --x: 96%;
+  --y: 8%;
+  --size: 95vmax;
+  --tint: #c2f5e5;
+  --glow-duration: 31s;
+  animation-delay: -6s;
+}
+.glow-mint-low {
+  --x: 20%;
+  --y: 62%;
+  --size: 62vmax;
+  --tint: #bff0d9;
+  --glow-duration: 26s;
+  animation-name: glow-drift-alt;
+}
+.glow-lavender {
+  --x: 50%;
+  --y: 46%;
+  --size: 40vmax;
+  --tint: #cfd4ec;
+  --glow-duration: 34s;
+  animation-delay: -14s;
+}
+.glow-butter {
+  --x: 66%;
+  --y: 40%;
+  --size: 46vmax;
+  --tint: #e6e8cc;
+  --glow-duration: 29s;
+  animation-name: glow-drift-alt;
+  animation-delay: -9s;
+}
+.glow-peach {
+  --x: 54%;
+  --y: 76%;
+  --size: 40vmax;
+  --tint: #f7eadb;
+  --glow-duration: 37s;
+  animation-delay: -20s;
+}
+.glow-blush {
+  --x: 100%;
+  --y: 100%;
+  --size: 46vmax;
+  --tint: #ebd9e8;
+  --glow-duration: 33s;
+  animation-name: glow-drift-alt;
+  animation-delay: -3s;
+}
+
+/* Workspace pages keep the colour but quieter, so content stays readable. */
+.glow-backdrop-subtle .glow {
+  opacity: 0.6;
+}
+
+@keyframes glow-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(4vw, 3vh, 0) scale(1.08);
+  }
+  100% {
+    transform: translate3d(-3vw, 5vh, 0) scale(0.96);
+  }
+}
+@keyframes glow-drift-alt {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-5vw, -2vh, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(3vw, -4vh, 0) scale(0.94);
+  }
+}
+
+/* Onboarding (full density): the colour fields roam visibly around the
+   window, fading in first on launch. Opacity and transform are separate
+   animations so they don't fight. */
+.glow-backdrop-full .glow {
+  animation:
+    glow-in 1600ms ease-out 250ms both,
+    glow-roam calc(var(--glow-duration, 28s) * 0.62) ease-in-out infinite
+      alternate;
+}
+.glow-backdrop-full .glow-mint-low,
+.glow-backdrop-full .glow-butter,
+.glow-backdrop-full .glow-blush {
+  animation:
+    glow-in 1600ms ease-out 450ms both,
+    glow-roam-alt calc(var(--glow-duration, 28s) * 0.62) ease-in-out infinite
+      alternate;
+}
+.glow-backdrop-full .glow-lavender {
+  animation-delay:
+    350ms,
+    -6s;
+}
+.glow-backdrop-full .glow-peach {
+  animation-delay:
+    550ms,
+    -11s;
+}
+@keyframes glow-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes glow-roam {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  25% {
+    transform: translate3d(14vw, 9vh, 0) scale(1.12);
+  }
+  50% {
+    transform: translate3d(5vw, 20vh, 0) scale(0.9);
+  }
+  75% {
+    transform: translate3d(-13vw, 8vh, 0) scale(1.08);
+  }
+  100% {
+    transform: translate3d(-7vw, -12vh, 0) scale(1);
+  }
+}
+@keyframes glow-roam-alt {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  30% {
+    transform: translate3d(-16vw, -8vh, 0) scale(1.1);
+  }
+  55% {
+    transform: translate3d(-4vw, -20vh, 0) scale(0.92);
+  }
+  80% {
+    transform: translate3d(12vw, -6vh, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(8vw, 10vh, 0) scale(0.96);
+  }
+}

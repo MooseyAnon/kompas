@@ -129,6 +129,28 @@ describe('identity profile', () => {
       expect(response.error.code).toBe('INVALID_INPUT');
     }
   });
+
+  it('keeps a mascot or a small photo as the profile picture, and nothing else (ADR 007)', async () => {
+    const avatarOf = async (avatar: unknown) =>
+      send<{ profile: { avatar: string | null } }>('profile.update', {
+        patch: { avatar },
+      });
+    expect(ok(await avatarOf('mascot:twins')).profile.avatar).toBe(
+      'mascot:twins',
+    );
+    const photo = 'data:image/jpeg;base64,/9j/4AAQSkZJRg==';
+    expect(ok(await avatarOf(photo)).profile.avatar).toBe(photo);
+    expect(ok(await avatarOf(null)).profile.avatar).toBeNull();
+    for (const bad of [
+      'mascot:dragon',
+      'https://example.com/me.png',
+      'data:image/svg+xml;base64,PHN2Zz4=',
+      `data:image/png;base64,${'A'.repeat(200_001)}`,
+    ]) {
+      const response = await avatarOf(bad);
+      expect(response.ok, bad.slice(0, 30)).toBe(false);
+    }
+  });
 });
 
 describe('identity targets', () => {

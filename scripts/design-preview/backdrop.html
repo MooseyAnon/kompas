@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Backdrop preview</title>
+    <style>
+      html,
+      body,
+      #root {
+        margin: 0;
+        height: 100%;
+      }
+      #root {
+        position: relative;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import React from 'react';
+      import { createRoot } from 'react-dom/client';
+      import '/src/renderer/shell.css';
+      import { GlowBackdrop } from '/src/renderer/presentation/backdrop/GlowBackdrop.tsx';
+      createRoot(document.getElementById('root')).render(
+        React.createElement(GlowBackdrop, { density: 'full' }),
+      );
+    </script>
+  </body>
+</html>

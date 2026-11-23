@@ -64,6 +64,28 @@ const timestampSchema = z.string().min(1);
 
 // --- Public entity shapes (camelCase wire projections) -----------------------
 
+/** ADR 007: the sprout mascots someone can have as their picture. */
+export const AVATAR_MASCOTS = [
+  'sprout',
+  'flop',
+  'wriggle',
+  'peek',
+  'nose',
+  'strut',
+  'twins',
+  'blob',
+] as const;
+export type AvatarMascot = (typeof AVATAR_MASCOTS)[number];
+/** About 150 KB of base64: a 256px photo, resized before it is saved. */
+export const AVATAR_PHOTO_MAX = 200_000;
+export const avatarSchema = z.union([
+  z.enum(AVATAR_MASCOTS.map((m) => `mascot:${m}`) as [string, ...string[]]),
+  z
+    .string()
+    .max(AVATAR_PHOTO_MAX)
+    .regex(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/u),
+]);
+
 export const profileSchema = z.object({
   id: z.string().min(1),
   displayName: z.string().max(DISPLAY_NAME_MAX),
@@ -71,6 +93,8 @@ export const profileSchema = z.object({
   currentRole: z.string().max(ROLE_TITLE_MAX).nullable(),
   location: z.string().max(SHORT_TEXT_MAX).nullable(),
   summary: z.string().max(LONG_TEXT_MAX).nullable(),
+  /** Additive (ADR 007): `mascot:<name>` or a small photo data URL. */
+  avatar: avatarSchema.nullable().optional(),
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
 });
@@ -138,6 +162,7 @@ export const profilePatchSchema = z
     currentRole: shortTextSchema.nullable().optional(),
     location: shortTextSchema.nullable().optional(),
     summary: longTextSchema.nullable().optional(),
+    avatar: avatarSchema.nullable().optional(),
   })
   .strict();
 export type ProfilePatch = z.infer<typeof profilePatchSchema>;

@@ -27,6 +27,7 @@ import {
   buildCreateInput,
   buildPatch,
   emptyPrepareForm,
+  formFromPreset,
   formFromSession,
   guidanceLength,
   hasErrors,
@@ -37,6 +38,7 @@ import {
   type PrepareFieldErrors,
   type PrepareFormValues,
 } from './prepareForm';
+import type { PracticePreset } from './preset';
 
 /**
  * Prepare-tab controller: an API facade plus in-flight request state. The
@@ -90,8 +92,13 @@ export function isResumable(item: InterviewSessionSummary) {
   return item.status === 'draft' || item.status === 'active';
 }
 
-export function usePrepareController(onOpenSession: OpenSession) {
-  const [values, setValues] = useState<PrepareFormValues>(emptyPrepareForm);
+export function usePrepareController(
+  onOpenSession: OpenSession,
+  preset?: PracticePreset,
+) {
+  const [values, setValues] = useState<PrepareFormValues>(() =>
+    formFromPreset(preset),
+  );
   const [editor, setEditor] = useState<DraftEditor>({ kind: 'new' });
   const [attempted, setAttempted] = useState(false);
   const [busy, setBusy] = useState<PrepareBusy>(null);

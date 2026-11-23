@@ -1,0 +1,162 @@
+/* Measured from the GND Home design (1106px frame): pill bar 377×51,
+   centred; logo and name on the content's outer edges. */
+.gnd-topnav {
+  position: relative;
+  z-index: 3;
+  flex: none;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  width: min(100%, var(--page-max, 1180px));
+  margin: 0 auto;
+  padding: 26px var(--page-gutter, 56px) 0;
+}
+.gnd-topnav-drag {
+  position: absolute;
+  inset: 0;
+  app-region: drag;
+}
+.gnd-topnav > :not(.gnd-topnav-drag) {
+  position: relative;
+  app-region: no-drag;
+}
+.gnd-topnav-logo {
+  justify-self: start;
+  border: 0;
+  padding: 4px 0;
+  background: none;
+  cursor: pointer;
+}
+.gnd-topnav-logo img {
+  display: block;
+  height: 20px;
+  width: auto;
+}
+
+.gnd-topnav-pills {
+  display: flex;
+  gap: 2px;
+  padding: 5px;
+  border: 1px solid #8f8f88;
+  border-radius: 999px;
+  background: #ffffffd9;
+}
+.gnd-topnav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  height: 38px;
+  padding: 0 26px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition:
+    background var(--motion-page) cubic-bezier(0.2, 0.7, 0.2, 1),
+    color var(--motion-fast);
+}
+.gnd-topnav-pill svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.7;
+}
+.gnd-topnav-pill:hover:not([aria-current='page']) {
+  background: #0026ff0d;
+}
+.gnd-topnav-pill[aria-current='page'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.gnd-topnav-account {
+  justify-self: end;
+}
+.gnd-topnav-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: none;
+  font-family: var(--font-family-display);
+  font-size: 15px;
+  font-weight: var(--weight-bold);
+  color: var(--accent);
+  cursor: pointer;
+}
+.gnd-topnav-name svg {
+  width: 16px;
+  height: 16px;
+  transition: transform var(--motion-fast);
+}
+.gnd-topnav-name[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+.gnd-topnav-name:hover,
+.gnd-topnav-name.is-active {
+  background: #0026ff0f;
+}
+.gnd-topnav-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 210px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow);
+  animation: gnd-menu-in 160ms ease-out both;
+}
+.gnd-topnav-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  border-radius: 9px;
+  padding: 10px 12px;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+.gnd-topnav-menu button svg {
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+}
+.gnd-topnav-menu button:hover,
+.gnd-topnav-menu button:focus-visible {
+  background: #0026ff0f;
+  outline: none;
+}
+.gnd-topnav-menu button[aria-current='page'] {
+  color: var(--accent);
+}
+@keyframes gnd-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (max-width: 760px) {
+  .gnd-topnav {
+    grid-template-columns: auto 1fr auto;
+    padding-top: 18px;
+  }
+  .gnd-topnav-pill {
+    padding: 0 12px;
+  }
+  .gnd-topnav-pill svg {
+    display: none;
+  }
+}

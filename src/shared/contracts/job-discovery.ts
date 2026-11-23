@@ -27,6 +27,50 @@ const text = (max: number) => z.string().trim().min(1).max(max);
 const bounded = (key: keyof typeof JOB_DISCOVERY_LIMITS, min = 1) =>
   z.number().int().min(min).max(JOB_DISCOVERY_LIMITS[key]);
 
+export const WORK_ARRANGEMENTS = [
+  'any',
+  'remote',
+  'hybrid',
+  'on_site',
+] as const;
+export const workArrangementSchema = z.enum(WORK_ARRANGEMENTS);
+export type WorkArrangement = z.infer<typeof workArrangementSchema>;
+
+/** ADR 006: several of each may be picked; an empty or absent list means any. */
+export const WORK_SETUPS = ['remote', 'hybrid', 'on_site'] as const;
+export type WorkSetup = (typeof WORK_SETUPS)[number];
+export const EXPERIENCE_LEVELS = [
+  'entry',
+  'junior',
+  'mid',
+  'senior',
+  'expert',
+] as const;
+export type ExperienceLevel = (typeof EXPERIENCE_LEVELS)[number];
+export const CONTRACT_TYPES = [
+  'full_time',
+  'part_time',
+  'contract',
+  'temporary',
+  'internship',
+  'apprenticeship',
+] as const;
+export type ContractType = (typeof CONTRACT_TYPES)[number];
+export const SALARY_CURRENCIES = ['GBP', 'EUR', 'USD'] as const;
+export type SalaryCurrency = (typeof SALARY_CURRENCIES)[number];
+export const SALARY_MAXIMUM = 1_000_000;
+
+const distinctList = <T extends z.ZodType<string>>(item: T, max: number) =>
+  z
+    .array(item)
+    .max(max)
+    .refine(
+      (items) =>
+        new Set(items.map((value) => value.toLowerCase())).size ===
+        items.length,
+      'Entries must be distinct.',
+    );
+
 /** Case-insensitive, so `Engineer` and `engineer` count as one role. */
 const hasDistinctRoles = (roles: string[]) =>
   new Set(roles.map((role) => role.toLowerCase())).size === roles.length;
@@ -46,6 +90,24 @@ const intentSchema = z.strictObject({
   targetYear: z.number().int().min(2000).max(2100).nullable(),
   companies: z.array(text(200)).max(10),
   keywords: z.array(text(200)).max(10),
+  /** Additive (ADR 005); absent in older saved searches means 'any'. */
+  workArrangement: workArrangementSchema.optional(),
+  /**
+   * Additive (ADR 006). When present these replace their single-value
+   * counterparts for planning and filtering; `location` mirrors the first
+   * location for older readers.
+   */
+  locations: distinctList(text(200), 5).optional(),
+  workArrangements: distinctList(z.enum(WORK_SETUPS), 3).optional(),
+  experienceLevels: distinctList(z.enum(EXPERIENCE_LEVELS), 5).optional(),
+  contractTypes: distinctList(z.enum(CONTRACT_TYPES), 6).optional(),
+  salary: z
+    .strictObject({
+      minimum: z.number().int().min(0).max(SALARY_MAXIMUM).nullable(),
+      currency: z.enum(SALARY_CURRENCIES),
+      onlyWithSalary: z.boolean(),
+    })
+    .optional(),
 });
 
 const querySchema = z.strictObject({

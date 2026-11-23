@@ -47,6 +47,24 @@ export const emptyPrepareForm: PrepareFormValues = {
   additionalGuidance: '',
 };
 
+/** The Prepare form filled in from elsewhere (a role, a Home action). */
+export function formFromPreset(preset?: {
+  method: InterviewMethod;
+  subject?: string;
+  guidance?: string;
+}): PrepareFormValues {
+  if (!preset) return emptyPrepareForm;
+  return {
+    ...emptyPrepareForm,
+    method: preset.method,
+    subject: (preset.subject ?? '').slice(0, SUBJECT_MAX),
+    additionalGuidance: (preset.guidance ?? '').slice(
+      0,
+      ADDITIONAL_GUIDANCE_MAX,
+    ),
+  };
+}
+
 export function formFromSession(session: InterviewSession): PrepareFormValues {
   return {
     method: session.method,

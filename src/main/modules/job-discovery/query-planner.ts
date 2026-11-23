@@ -2,12 +2,31 @@ import {
   JOB_DISCOVERY_LIMITS,
   WEB_LIMITS,
   jobDiscoveryConfigurationV1Schema,
+  type ContractType,
+  type ExperienceLevel,
   type JobDiscoveryConfigurationV1,
 } from '../../../shared/contracts';
 import { AppError } from '../../ipc/errors';
 
 const MAX_QUERY_WORDS = 24;
 const INTERNSHIP_TERM = /\b(intern(?:ship)?|placement)\b/iu;
+
+/** Words boards understand for each level; mid-level postings rarely say so. */
+const LEVEL_TERM: Record<ExperienceLevel, string | null> = {
+  entry: 'graduate',
+  junior: 'junior',
+  mid: null,
+  senior: 'senior',
+  expert: 'lead',
+};
+const CONTRACT_TERM: Record<ContractType, string> = {
+  full_time: '',
+  part_time: 'part time',
+  contract: 'contract',
+  temporary: 'temporary',
+  internship: 'internship',
+  apprenticeship: 'apprenticeship',
+};
 
 const normalize = (text: string) => text.trim().replace(/\s+/gu, ' ');
 
@@ -40,6 +59,33 @@ function query(parts: string[], extras: string[]): string {
 }
 
 /**
+ * ADR 006: the search words for a saved search's preferences. Lists replace
+ * their single-value fields when present.
+ */
+function preferenceTerms(intent: JobDiscoveryConfigurationV1['intent']) {
+  const locations = intent.locations?.length
+    ? intent.locations
+    : [intent.location ?? ''];
+  const levels: (string | null)[] = intent.experienceLevels?.length
+    ? [...new Set(intent.experienceLevels.map((level) => LEVEL_TERM[level]))]
+    : [intent.seniority];
+  // Remote and hybrid are search terms boards understand; on-site and 'any'
+  // add nothing, since most listings are on-site by default. With several
+  // setups picked, no term is added so none is excluded.
+  const setups = intent.workArrangements
+    ? intent.workArrangements
+    : intent.workArrangement && intent.workArrangement !== 'any'
+      ? [intent.workArrangement]
+      : [];
+  const arrangement =
+    setups.length === 1 && setups[0] !== 'on_site' ? setups[0] : '';
+  const contracts = intent.contractTypes ?? [];
+  const contract = contracts.length === 1 ? CONTRACT_TERM[contracts[0]] : '';
+
+  return { locations, levels, arrangement, contract };
+}
+
+/**
  * Stable round-robin: first cover distinct roles, then add justified variants.
  */
 export function planQueries(config: JobDiscoveryConfigurationV1): string[] {
@@ -55,9 +101,9 @@ export function planQueries(config: JobDiscoveryConfigurationV1): string[] {
 
   const plans: string[] = [];
   const seen = new Set<string>();
-  const add = (role: string, extras: string[]) => {
+  const add = (role: string, location: string, extras: string[]) => {
     const result = query(
-      [role, intent.location ?? '', intent.targetYear?.toString() ?? ''],
+      [role, location, intent.targetYear?.toString() ?? ''],
       extras,
     );
     const key = result.toLowerCase();
@@ -67,41 +113,63 @@ export function planQueries(config: JobDiscoveryConfigurationV1): string[] {
     }
   };
 
-  const roleExtras = (role: string, seniority = intent.seniority) => {
+  const { locations, levels, arrangement, contract } = preferenceTerms(intent);
+
+  const roleExtras = (role: string, seniority: string | null) => {
     const seniorityRepeatsRole =
       !!seniority &&
       INTERNSHIP_TERM.test(role) &&
       INTERNSHIP_TERM.test(seniority);
     const senioritySuffix = seniority && !seniorityRepeatsRole ? seniority : '';
+    const contractRepeatsRole =
+      INTERNSHIP_TERM.test(role) && INTERNSHIP_TERM.test(contract);
 
-    return [senioritySuffix, intent.field ?? ''];
+    return [
+      senioritySuffix,
+      intent.field ?? '',
+      arrangement,
+      contractRepeatsRole ? '' : contract,
+    ];
   };
 
-  for (const role of intent.targetRoles) add(role, roleExtras(role));
+  // Cover every role and every location early: each round pairs role r with
+  // location (r + round), so two roles in two places take four queries, not
+  // two queries in the first place only. Levels rotate across those queries.
+  const roles = intent.targetRoles;
+  const pairs: [string, string][] = [];
+  for (let round = 0; round < locations.length; round++)
+    for (let r = 0; r < roles.length; r++)
+      pairs.push([roles[r], locations[(r + round) % locations.length]]);
+  pairs.forEach(([role, location], index) =>
+    add(role, location, roleExtras(role, levels[index % levels.length])),
+  );
+  for (const level of levels)
+    for (const [role, location] of pairs)
+      add(role, location, roleExtras(role, level));
 
   // Placement is a different, relevant term only for explicitly
   // internship/placement intent.
-  for (const role of intent.targetRoles) {
-    const combined = `${role} ${intent.seniority ?? ''}`;
+  const [firstLocation] = locations;
+  const [firstLevel] = levels;
+  for (const role of roles) {
+    const combined = `${role} ${firstLevel ?? ''} ${contract}`;
     if (!INTERNSHIP_TERM.test(combined)) continue;
 
     const variantRole = INTERNSHIP_TERM.test(role)
       ? role.replace(INTERNSHIP_TERM, swapInternshipTerm)
       : role;
-    const variantSeniority = intent.seniority?.replace(
-      INTERNSHIP_TERM,
-      swapInternshipTerm,
-    );
-    add(variantRole, roleExtras(variantRole, variantSeniority));
+    const variantSeniority =
+      firstLevel?.replace(INTERNSHIP_TERM, swapInternshipTerm) ?? null;
+    add(variantRole, firstLocation, roleExtras(variantRole, variantSeniority));
   }
 
   // Company and keyword phrases are optional variants, never filters on every
   // query.
-  for (const role of intent.targetRoles) {
+  for (const role of roles) {
     for (const company of intent.companies)
-      add(role, [...roleExtras(role), company]);
+      add(role, firstLocation, [...roleExtras(role, firstLevel), company]);
     for (const keyword of intent.keywords)
-      add(role, [...roleExtras(role), keyword]);
+      add(role, firstLocation, [...roleExtras(role, firstLevel), keyword]);
   }
 
   return plans;

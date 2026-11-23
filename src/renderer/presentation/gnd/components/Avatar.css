@@ -1,0 +1,28 @@
+.gnd-avatar {
+  position: relative;
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+}
+.gnd-avatar img {
+  width: 82%;
+  height: 82%;
+  margin-top: 8%;
+  object-fit: contain;
+  user-select: none;
+}
+.gnd-avatar img.is-photo {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  object-fit: cover;
+}
+.gnd-avatar-initials {
+  font-family: var(--font-display, 'Space Grotesk', sans-serif);
+  font-size: 1em;
+  font-weight: 600;
+}

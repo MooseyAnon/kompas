@@ -385,7 +385,7 @@ describe('v10 migration and reserved schema invariants', () => {
       db.prepare(`SELECT display_name FROM profiles WHERE id='local'`).get(),
     ).toEqual({ display_name: 'Retained' });
     expect(runMigrations(db).appliedVersions).toEqual([
-      10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+      10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
     ]);
   });
   it('upgrades populated real v9 without changing existing rows, repeats and restarts cleanly', () => {
@@ -439,7 +439,7 @@ describe('v10 migration and reserved schema invariants', () => {
       db.prepare(`SELECT * FROM ${table}`).all(),
     );
     expect(runMigrations(db).appliedVersions).toEqual([
-      10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+      10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
     ]);
     expect(runMigrations(db).appliedVersions).toEqual([]);
     db.close();
@@ -459,6 +459,7 @@ describe('v10 migration and reserved schema invariants', () => {
               discovery_opportunity_id: _added,
               generation_epoch: _epoch,
               additional_guidance: _guidance,
+              avatar: _avatar,
               ...legacy
             } = row as Record<string, unknown>;
             return legacy;

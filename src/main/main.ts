@@ -220,11 +220,28 @@ function isMicrophoneRequest(
   return true;
 }
 
+/**
+ * Writing plain text to the clipboard (the "Copy" buttons) is allowed for our
+ * own window only. Reading the clipboard stays denied.
+ */
+function isClipboardWrite(
+  contents: Electron.WebContents,
+  permission: string,
+): boolean {
+  return (
+    contents.id === mainWindow?.webContents.id &&
+    permission === 'clipboard-sanitized-write'
+  );
+}
+
 function installMediaPermissionHandlers(): void {
   session.defaultSession.setPermissionRequestHandler(
     (contents, permission, callback, details) => {
       const mediaTypes = (details as { mediaTypes?: string[] }).mediaTypes;
-      callback(isMicrophoneRequest(contents, permission, mediaTypes));
+      callback(
+        isClipboardWrite(contents, permission) ||
+          isMicrophoneRequest(contents, permission, mediaTypes),
+      );
     },
   );
   session.defaultSession.setPermissionCheckHandler(
@@ -232,7 +249,7 @@ function installMediaPermissionHandlers(): void {
       if (!contents) {
         return false;
       }
-
+      if (isClipboardWrite(contents, permission)) return true;
       const mediaType = details.mediaType;
       const mediaTypes = mediaType === 'video' ? ['video'] : undefined;
 
@@ -283,13 +300,15 @@ function createWindow(): void {
       contextIsolation: true,
       nodeIntegration: false,
       webSecurity: true,
+      // The onboarding intro plays its music without waiting for a click.
+      autoplayPolicy: 'no-user-gesture-required',
     },
   });
 
   hardenWebContents(mainWindow.webContents);
 
   mainWindow.once('ready-to-show', () => {
-    mainWindow?.show();
+    if (mainWindow) fadeIn(mainWindow);
   });
 
   mainWindow.on('closed', () => {
@@ -303,6 +322,23 @@ function createWindow(): void {
       path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
     );
   }
+}
+
+/**
+ * Show the window by fading it in from transparent (macOS and Windows; other
+ * platforms just show it). The page then animates its background and text.
+ */
+function fadeIn(win: BrowserWindow): void {
+  const steps = 14;
+  let step = 0;
+  win.setOpacity(0);
+  win.show();
+  const timer = setInterval(() => {
+    step += 1;
+    if (win.isDestroyed()) return clearInterval(timer);
+    win.setOpacity(Math.min(1, (step / steps) ** 1.6));
+    if (step >= steps) clearInterval(timer);
+  }, 32);
 }
 
 function registerIpc(): void {

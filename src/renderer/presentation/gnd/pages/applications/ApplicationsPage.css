@@ -1,0 +1,460 @@
+/* GND "Your applications", measured from the 1174px design frame. */
+.gnd-applications {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.gnd-applications-title {
+  text-align: center;
+  margin: 18px 0 6px;
+}
+
+.gnd-profile-panel {
+  position: relative;
+  display: flex;
+  gap: 20px;
+  padding: 18px 40px 24px 60px;
+  border: 1px solid #ffffffb3;
+  border-radius: 24px;
+  background: #ffffff59;
+  backdrop-filter: blur(6px);
+}
+.gnd-initials {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 61px;
+  height: 61px;
+  border-radius: 50%;
+  background: var(--accent-surface);
+  font-family: var(--font-family-display);
+  font-size: 21px;
+  font-weight: var(--weight-bold);
+  color: #fff;
+}
+.gnd-profile-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.gnd-profile-panel h2 {
+  margin: 6px 0 0;
+  font-family: var(--font-family-display);
+  font-size: 24px;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.02em;
+}
+.gnd-profile-panel .gnd-muted {
+  margin: 0;
+  font-size: 14px;
+}
+.gnd-profile-summary {
+  margin: 2px 0 0;
+  margin-left: -82px;
+  font-size: 14px;
+}
+.gnd-skill-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 2px 0 0 -82px;
+  padding: 0;
+  list-style: none;
+}
+.gnd-skill-chip,
+.gnd-skill-add {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 5px;
+  font: inherit;
+  font-size: 12px;
+}
+.gnd-skill-chip {
+  background: #0026ff12;
+  color: var(--accent);
+}
+.gnd-skill-add {
+  border: 1px solid var(--border);
+  background: #ffffff8c;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.gnd-profile-pickers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-left: -82px;
+}
+.gnd-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  height: 23px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: #ffffff59;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.gnd-picker span {
+  color: var(--text-muted);
+}
+.gnd-picker strong {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gnd-picker svg {
+  flex: none;
+  width: 12px;
+  height: 12px;
+}
+
+.gnd-app-filters {
+  display: flex;
+  gap: 27px;
+  padding: 10px 0 18px;
+  border-bottom: 1px solid #b5b5ad;
+}
+.gnd-app-filters button {
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.gnd-app-filters button[aria-selected='true'] {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.gnd-applications-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(220px, 1fr);
+  gap: 38px;
+  align-items: start;
+}
+.gnd-applications-lists {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.gnd-applications-label {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.gnd-applications-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 18px;
+}
+.gnd-applications-label-row .gnd-muted {
+  font-size: 13px;
+}
+
+.gnd-applied-card {
+  padding: 22px 23px;
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  background: var(--surface-card);
+}
+.gnd-applied-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.gnd-applied-card-head .gnd-muted {
+  margin: 0;
+  font-size: 13px;
+}
+.gnd-applied-card h3 {
+  margin: 10px 0 12px;
+  font-family: var(--font-family-display);
+  font-weight: var(--weight-medium);
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+.gnd-applied-card p {
+  margin: 0 0 6px;
+  font-size: 13px;
+}
+.gnd-applied-card hr,
+.gnd-applications-side hr {
+  border: 0;
+  border-top: 1px solid #d9d8d0;
+  margin: 18px 0;
+}
+.gnd-applied-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.gnd-applied-card-actions > span {
+  display: flex;
+  gap: 20px;
+}
+.gnd-saved-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 18px;
+  border-radius: 12px;
+  background: #ebeae4b3;
+}
+.gnd-saved-row p {
+  margin: 0;
+  font-size: 12.5px;
+}
+.gnd-saved-row h3 {
+  margin: 6px 0 0;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.gnd-applications-side h2 {
+  margin: 4px 0 18px;
+  font-family: var(--font-family-display);
+  font-weight: var(--weight-medium);
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+.gnd-dots {
+  display: grid;
+  grid-template-columns: repeat(10, 15px);
+  gap: 10px 8px;
+}
+.gnd-dots span {
+  width: 15px;
+  height: 15px;
+  border: 1px solid #c4c4bc;
+  border-radius: 50%;
+}
+.gnd-dots span.is-on {
+  border-color: var(--accent-surface);
+  background: var(--accent-surface);
+}
+.gnd-dots-caption {
+  margin: 14px 0 0;
+  font-size: 12px;
+}
+.gnd-practise-title {
+  margin-top: 8px;
+}
+.gnd-applications-side p {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .gnd-applications-grid {
+    grid-template-columns: 1fr;
+  }
+  .gnd-profile-panel {
+    padding: 18px 20px;
+  }
+  .gnd-profile-summary,
+  .gnd-skill-chips,
+  .gnd-profile-pickers {
+    margin-left: 0;
+  }
+}
+
+/* Opportunities for you: opened listings and new matches, under the profile. */
+.gnd-opportunities {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.gnd-opportunity-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr));
+  gap: 12px;
+}
+.gnd-opportunity-row {
+  align-items: flex-start;
+}
+.gnd-opportunity-side {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+}
+.gnd-opportunity-actions {
+  display: inline-flex;
+  gap: 18px;
+}
+.gnd-interview-when {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.gnd-tag-note {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: var(--note-bg);
+  color: var(--note-ink);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Add an application, top-right of the profile card. */
+.gnd-profile-add {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+}
+.gnd-profile-add svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Interviews: an agenda by day, like a calendar's schedule view. */
+.gnd-agenda {
+  display: flex;
+  flex-direction: column;
+}
+.gnd-agenda-section {
+  margin: 22px 0 4px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.gnd-agenda-section:first-child {
+  margin-top: 0;
+}
+.gnd-agenda-today {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 2px 0 6px;
+  color: #c4352b;
+  font-size: 13px;
+  font-weight: 600;
+}
+.gnd-agenda-today::after {
+  flex: 1;
+  height: 2px;
+  background: #c4352b;
+  content: '';
+}
+.gnd-agenda-day {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 20px;
+  padding: 18px 0;
+  border-top: 1px solid var(--border-soft);
+}
+.gnd-agenda-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-top: 4px;
+}
+.gnd-agenda-wd {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.gnd-agenda-dn {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-family-display);
+  font-size: 26px;
+  font-weight: 500;
+}
+.gnd-agenda-day.is-past .gnd-agenda-dn {
+  background: transparent;
+  color: var(--text-primary);
+}
+.gnd-agenda-mo {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.gnd-agenda-events {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.gnd-agenda-event {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 18px 20px;
+  border: 1px solid var(--border-soft);
+  border-left: 5px solid var(--accent);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.gnd-agenda-day.is-past .gnd-agenda-event {
+  border-left-color: #c9c9bf;
+  background: var(--surface-card);
+}
+.gnd-agenda-time {
+  font-size: 15px;
+  font-weight: 600;
+}
+.gnd-agenda-text h3 {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.gnd-agenda-day.is-past .gnd-agenda-text h3 {
+  color: var(--text-muted);
+}
+.gnd-agenda-text p {
+  margin: 4px 0 0;
+  font-size: 14px;
+}
+.gnd-agenda-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Archived */
+.gnd-archived-intro {
+  margin: -6px 0 4px;
+  font-size: 14px;
+}
+.gnd-archived-card {
+  background: var(--surface-card);
+}
+.gnd-archived-card h3 {
+  color: #4d4f48;
+}
+.gnd-archived-actions {
+  display: flex;
+  gap: 22px;
+}

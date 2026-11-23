@@ -21,6 +21,8 @@
     "lint:fix": "oxlint --fix && oxfmt --write",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "preview:design": "vite --config scripts/design-preview/vite.config.mts",
+    "preview:screens": "node scripts/design-preview/screenshots.mjs",
     "smoke": "npm run smoke:ui:onboarding && npm run smoke:core && npm run smoke:discovery && npm run smoke:ui:jobs && npm run smoke:ui:review-apply && npm run smoke:ui:applications && npm run smoke:ui:shell && npm run smoke:ui:profile && npm run smoke:ui:settings && npm run smoke:ui:interviews && npm run smoke:ui:reset",
     "smoke:core": "node scripts/packaged-smoke.mjs core",
     "smoke:discovery": "node scripts/packaged-smoke.mjs discovery",

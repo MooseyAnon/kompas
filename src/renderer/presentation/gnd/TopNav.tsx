@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import logo from './brand/gnd-logo@2x.png';
+import { Wordmark } from './brand/Wordmark';
 import {
   accountDestinations,
   destinations,
@@ -80,10 +80,10 @@ export function TopNav({
       <button
         type="button"
         className="gnd-topnav-logo"
-        aria-label="GND home"
+        aria-label="Kompas home"
         onClick={() => onNavigate('home')}
       >
-        <img src={logo} alt="" draggable={false} />
+        <Wordmark />
       </button>
 
       <nav className="gnd-topnav-pills" aria-label="Main">

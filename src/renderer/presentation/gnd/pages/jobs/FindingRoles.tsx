@@ -106,7 +106,7 @@ export function FindingRoles({
       aria-labelledby="gnd-finding-title"
     >
       <div className="gnd-finding-logo" aria-hidden="true">
-        GND
+        Kompas
       </div>
       <main className="gnd-finding-body">
         {failed ? (

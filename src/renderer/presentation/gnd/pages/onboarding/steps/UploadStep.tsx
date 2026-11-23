@@ -57,8 +57,8 @@ export function UploadStep({
         title="Start with what you’ve done."
         lead={
           <p>
-            GND reads your CV, searches the web for matching roles, and tailors
-            each application — you download and apply externally.
+            Kompas reads your CV, searches the web for matching roles, and
+            tailors each application — you download and apply externally.
           </p>
         }
       />
@@ -92,7 +92,7 @@ export function UploadStep({
           onChange={(event) => setConsent(event.target.checked)}
         />
         <span>
-          I agree to GND reading my CV to find relevant roles and prepare
+          I agree to Kompas reading my CV to find relevant roles and prepare
           tailored CVs. Everything stays on this computer.
         </span>
       </label>

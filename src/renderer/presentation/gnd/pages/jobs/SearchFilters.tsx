@@ -46,7 +46,7 @@ export function SearchFilters({
             Search filters
           </h1>
           <p className="gnd-muted">
-            What GND looks for on LinkedIn and Indeed. Change anything at any
+            What Kompas looks for on LinkedIn and Indeed. Change anything at any
             time, it saves as you go.
           </p>
         </div>

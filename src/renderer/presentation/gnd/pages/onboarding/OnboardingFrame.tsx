@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
-import logo from '../../brand/gnd-logo@2x.png';
+import { Wordmark } from '../../brand/Wordmark';
 import { useIntroMusic } from '../../audio/useIntroMusic';
 import { GlowBackdrop } from '../../backdrop/GlowBackdrop';
 
@@ -52,7 +52,9 @@ export function OnboardingFrame({
       <GlowBackdrop density="full" />
       <div className="gnd-onboarding-drag" aria-hidden="true" />
       <header className="gnd-onboarding-header">
-        <img className="gnd-logo" src={logo} alt="GND" draggable={false} />
+        <span className="gnd-logo" role="img" aria-label="Kompas">
+          <Wordmark />
+        </span>
         <div className="gnd-onboarding-tools">
           {music && (
             <button

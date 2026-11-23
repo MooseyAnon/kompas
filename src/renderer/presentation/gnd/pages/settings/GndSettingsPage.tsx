@@ -103,7 +103,7 @@ export function GndSettingsPage() {
       <header className="gnd-settings-head">
         <h1 className="gnd-page-title">Settings</h1>
         <p className="gnd-muted">
-          Check what GND can use on this computer, and set it up.
+          Check what Kompas can use on this computer, and set it up.
         </p>
       </header>
       {aiReady === false && (
@@ -162,7 +162,7 @@ export function GndSettingsPage() {
               <div className="gnd-settings-setup">
                 <h2>Set up Ollama</h2>
                 <p className="gnd-muted">
-                  GND reads your CV and finds roles with a model that runs on
+                  Kompas reads your CV and finds roles with a model that runs on
                   your computer, so nothing leaves it. It’s free.
                 </p>
                 <OllamaSetup

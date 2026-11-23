@@ -38,7 +38,7 @@ export function forYou(
   if (!hasSearch)
     return {
       title: 'Tell us what you’re after',
-      body: 'Add the roles you want, and GND will search for them.',
+      body: 'Add the roles you want, and Kompas will search for them.',
       action: 'Set up a search',
       tab: 'filters',
     };

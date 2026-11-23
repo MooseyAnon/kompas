@@ -1,0 +1,9 @@
+.gnd-wordmark {
+  display: inline-block;
+  color: var(--accent);
+  font-family: var(--font-family-display);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  user-select: none;
+}

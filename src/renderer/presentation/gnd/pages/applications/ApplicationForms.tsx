@@ -474,7 +474,9 @@ export function ApplicationModal({
   }
 
   const title = edit ? 'Edit details' : 'Add an application';
-  const subtitle = edit ? undefined : 'For a role you applied to outside GND.';
+  const subtitle = edit
+    ? undefined
+    : 'For a role you applied to outside Kompas.';
 
   if (step === 'link')
     return (

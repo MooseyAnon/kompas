@@ -149,7 +149,7 @@ export function OllamaSetup({
           <span className="gnd-step-number" aria-hidden="true">
             3
           </span>
-          <span>Then download the model GND uses</span>
+          <span>Then download the model Kompas uses</span>
         </li>
         <li className="gnd-steps-command">
           <CommandBox key={model} command={`ollama pull ${model}`} />

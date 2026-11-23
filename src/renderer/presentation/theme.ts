@@ -1,11 +1,11 @@
 /**
- * Two interfaces share one back end: Meadow (the default) and GND
- * (presentation/gnd). The choice is per computer, kept in local storage, and
+ * Two interfaces share one back end: Meadow (the default) and Kompas
+ * (presentation/gnd, first designed under the working name GND). The choice is per computer, kept in local storage, and
  * applied before the first render so the page never flashes the other theme.
  */
 export const THEMES = [
   { id: 'meadow', label: 'Meadow' },
-  { id: 'gnd', label: 'GND' },
+  { id: 'kompas', label: 'Kompas' },
 ] as const;
 export type ThemeId = (typeof THEMES)[number]['id'];
 
@@ -18,8 +18,10 @@ export function readTheme(): ThemeId {
   try {
     const fromUrl = new URLSearchParams(window.location.search).get('theme');
     if (isTheme(fromUrl)) return fromUrl;
+    if (fromUrl === 'gnd') return 'kompas';
     const saved = window.localStorage.getItem(KEY);
     if (isTheme(saved)) return saved;
+    if (saved === 'gnd') return 'kompas'; // its earlier name
   } catch {
     // Storage unavailable: use the default.
   }

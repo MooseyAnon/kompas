@@ -1,5 +1,5 @@
-/* GND theme: fonts and the token seam values. Applied only while GND is the
-   chosen interface (<html data-theme="gnd">), so Meadow keeps its own look.
+/* Kompas theme (working name GND): fonts and the token seam values. Applied only while GND is the
+   chosen interface (<html data-theme="kompas">), so Meadow keeps its own look.
    Everything else in this folder uses gnd- prefixed classes. */
 @font-face {
   font-family: 'Space Grotesk';
@@ -70,7 +70,7 @@
     U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
-:root[data-theme='gnd'] {
+:root[data-theme='kompas'] {
   --font-family-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
   --font-family-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-family-label: 'Inter', ui-sans-serif, system-ui, sans-serif;
@@ -120,7 +120,7 @@
   --motion-page: 260ms;
   --focus-ring: #0026ff;
 }
-:root[data-theme='gnd'] ::selection {
+:root[data-theme='kompas'] ::selection {
   background: var(--accent-soft);
   color: var(--text-primary);
 }

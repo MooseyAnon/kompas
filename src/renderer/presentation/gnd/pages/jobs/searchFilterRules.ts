@@ -154,7 +154,7 @@ export function stoppedShort(
   if (codes.has('DEADLINE_REACHED'))
     return 'The search ran out of time, so a few roles may be missing.';
   if (codes.has('INTERRUPTED_ON_RESTART'))
-    return 'The search stopped when GND was closed.';
+    return 'The search stopped when Kompas was closed.';
   if (state.status === 'cancelled') return 'You stopped the search early.';
   if (
     state.status === 'failed' ||

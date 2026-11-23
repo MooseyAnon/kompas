@@ -1,13 +1,15 @@
-# GND theme
+# Kompas theme (folder `gnd`)
 
-A second interface for Kompas, next to Meadow. Both run on the same back end
+A second interface for Kompas, next to Meadow. It was designed under the
+working name GND, which is why the folder, components and CSS classes use
+`gnd`; everything people see says Kompas. Both run on the same back end
 and data; only the presentation differs.
 
 ## Switching
 
-- Settings › System › Interface: Meadow (default) or GND. The choice is saved
+- Settings › System › Interface: Meadow (default) or Kompas. The choice is saved
   per computer and the window reloads.
-- For previews, `?theme=gnd` or `?theme=meadow` on the URL overrides it.
+- For previews, `?theme=kompas` or `?theme=meadow` on the URL overrides it.
 - `src/renderer/main.tsx` reads the choice (`presentation/theme.ts`), sets
   `<html data-theme>`, and renders Meadow's `App` or `GndApp`.
 
@@ -17,7 +19,7 @@ and data; only the presentation differs.
   root, top bar and page router. GND has a Profile page that is also Your
   applications.
 - `theme.css`: Space Grotesk and Inter, plus GND values for the shared design
-  tokens, applied only under `:root[data-theme='gnd']`. Meadow's tokens in
+  tokens, applied only under `:root[data-theme='kompas']`. Meadow's tokens in
   `shell.css` are unchanged.
 - `gnd.css` and every other stylesheet here use `gnd-` prefixed classes, so
   nothing leaks into Meadow.
@@ -46,4 +48,4 @@ Kept small and additive so Meadow looks and behaves the same:
 ## Previewing without Electron
 
 `npm run preview:design` serves the real renderer against an in-process back
-end at http://127.0.0.1:5199/scripts/design-preview/ (add `?theme=gnd`).
+end at http://127.0.0.1:5199/scripts/design-preview/ (add `?theme=kompas`).

@@ -11,10 +11,12 @@ if (!container) {
   throw new Error('Root container #root not found');
 }
 
-// Meadow is the default interface; GND is chosen in Settings › System.
+// Meadow is the default interface; Kompas is chosen in Settings › System.
 const theme = readTheme();
 applyTheme(theme);
 
 createRoot(container).render(
-  <React.StrictMode>{theme === 'gnd' ? <GndApp /> : <App />}</React.StrictMode>,
+  <React.StrictMode>
+    {theme === 'kompas' ? <GndApp /> : <App />}
+  </React.StrictMode>,
 );

@@ -13,10 +13,12 @@ afterEach(() => {
 });
 
 describe('interface theme', () => {
-  it('defaults to Meadow, remembers GND, and lets ?theme= override', () => {
+  it('defaults to Meadow, remembers Kompas, and lets ?theme= override', () => {
     expect(readTheme()).toBe('meadow');
+    window.localStorage.setItem('kompas.theme', 'kompas');
+    expect(readTheme()).toBe('kompas');
     window.localStorage.setItem('kompas.theme', 'gnd');
-    expect(readTheme()).toBe('gnd');
+    expect(readTheme()).toBe('kompas');
     window.history.replaceState(null, '', '/?theme=meadow');
     expect(readTheme()).toBe('meadow');
     window.localStorage.setItem('kompas.theme', 'nonsense');
@@ -24,19 +26,19 @@ describe('interface theme', () => {
     expect(readTheme()).toBe('meadow');
   });
 
-  it('marks the document so GND tokens apply only to GND', () => {
-    applyTheme('gnd');
-    expect(document.documentElement.dataset.theme).toBe('gnd');
+  it('marks the document so Kompas tokens apply only to Kompas', () => {
+    applyTheme('kompas');
+    expect(document.documentElement.dataset.theme).toBe('kompas');
     applyTheme('meadow');
     expect(document.documentElement.dataset.theme).toBe('meadow');
   });
 
   it('saves the choice when switching', () => {
     try {
-      switchTheme('gnd');
+      switchTheme('kompas');
     } catch {
       // jsdom does not navigate; the saved choice is what matters.
     }
-    expect(window.localStorage.getItem('kompas.theme')).toBe('gnd');
+    expect(window.localStorage.getItem('kompas.theme')).toBe('kompas');
   });
 });

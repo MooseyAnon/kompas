@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  interviewStages,
+  rankFocus,
+  repeatedSkills,
   competencyPoints,
   composeGuidance,
   levelOf,
@@ -18,16 +21,16 @@ describe('Kompas interviews', () => {
   it('turns badges, time and a note into guidance', () => {
     expect(
       composeGuidance({
-        badges: ['star'],
+        focus: ['STAR method'],
         minutes: 20,
         deepLoop: true,
         note: ' Base it on Dojo ',
       }),
     ).toBe(
-      'Ask questions to answer with the STAR method. I have about 20 minutes, so pace the conversation to fit. Base it on Dojo',
+      'Focus on: STAR method. I have about 20 minutes, so pace the conversation to fit. Base it on Dojo',
     );
     expect(
-      composeGuidance({ badges: [], minutes: 20, deepLoop: false, note: '' }),
+      composeGuidance({ focus: [], minutes: 20, deepLoop: false, note: '' }),
     ).toBe('');
   });
 
@@ -53,6 +56,37 @@ describe('Kompas interviews', () => {
     ).toEqual([
       ['Craft', 2, 1, 25],
       ['Strategy', 1, 0, 5],
+    ]);
+  });
+
+  it('pulls skills repeated across job descriptions', () => {
+    const skills = repeatedSkills([
+      { matched: ['Figma', 'Prototyping'], missing: ['Design systems'] },
+      { matched: ['figma'], missing: ['Prototyping', 'SQL'] },
+      { matched: ['Figma', 'Design systems'], missing: [] },
+    ]);
+    expect(skills.map((s) => s.label)).toEqual([
+      'Figma',
+      'Design systems',
+      'Prototyping',
+    ]);
+  });
+
+  it('knows the usual stages for a role and ranks practice against them', () => {
+    const stages = interviewStages('Staff Product Designer');
+    expect(stages[0].label).toBe('Portfolio review');
+    const ranked = rankFocus(
+      stages.slice(0, 2),
+      [{ id: 'figma', label: 'Figma' }],
+      [
+        { name: 'Design challenge', answered: 2, passed: 2, points: 40 },
+        { name: 'portfolio review', answered: 2, passed: 1, points: 25 },
+      ],
+    );
+    expect(ranked.map((r) => [r.label, r.score])).toEqual([
+      ['Design challenge', 100],
+      ['Portfolio review', 50],
+      ['Figma', null],
     ]);
   });
 });

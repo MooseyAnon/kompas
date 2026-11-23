@@ -27,23 +27,23 @@ import {
 } from '../../../../pages/interviews/prepare/usePrepareController';
 import {
   DEFAULT_MINUTES,
-  GUIDANCE_BADGES,
   TIME_OPTIONS,
   competencyPoints,
   composeGuidance,
   levelOf,
   questionsFor,
+  rankFocus,
   tallyCompetencies,
   POINTS_PER_LEVEL,
-  type BadgeId,
   type CompetencyTally,
   type Minutes,
 } from './interviewView';
+import { useRoleFocus, type RoleFocus } from './useRoleFocus';
 import './GndInterviewsPage.css';
 
 type View =
   | { kind: 'home' }
-  | { kind: 'setup' }
+  | { kind: 'setup'; focus?: string[] }
   | { kind: 'history' }
   | { kind: 'session'; id: string; state?: InterviewWorkflowState };
 
@@ -85,7 +85,17 @@ export function GndInterviewsPage({
     (id, state) => setView({ kind: 'session', id, state }),
     preset,
   );
+  const roleFocus = useRoleFocus();
   const openLocalAi = () => onNavigate?.('settings');
+  const stageLabels = roleFocus.stages.map((stage) => stage.label);
+  const roleName = roleFocus.role ?? 'your next role';
+
+  /** Open the setup for a method, with a subject and focus filled in. */
+  function setUp(method: InterviewMethod, subject?: string, focus?: string[]) {
+    controller.setMethod(method);
+    if (subject !== undefined) controller.setField('subject', subject);
+    setView({ kind: 'setup', focus });
+  }
 
   if (view.kind === 'session')
     return (
@@ -121,6 +131,8 @@ export function GndInterviewsPage({
     return (
       <Setup
         controller={controller}
+        roleFocus={roleFocus}
+        initialFocus={view.focus ?? []}
         onBack={() => {
           controller.cancelEdit();
           setView({ kind: 'home' });
@@ -132,12 +144,23 @@ export function GndInterviewsPage({
   return (
     <section className="gnd-iv" aria-labelledby="gnd-iv-title">
       <header className="gnd-iv-head">
-        <h1 id="gnd-iv-title" className="gnd-page-title">
-          Practise interviews
-        </h1>
-        <p className="gnd-muted">
-          See where you’re strong, then practise to grow the rest.
-        </p>
+        <div>
+          <h1 id="gnd-iv-title" className="gnd-page-title">
+            Interviews
+          </h1>
+          <p className="gnd-muted">
+            Practise for {roleName} and watch your competency grow.
+          </p>
+        </div>
+        <Button
+          leadingIcon={<Play aria-hidden="true" />}
+          data-testid="gnd-iv-mock"
+          onClick={() =>
+            setUp('deep_loop', `${roleName} interview`, stageLabels)
+          }
+        >
+          Take a mock interview
+        </Button>
       </header>
 
       <PickUp
@@ -149,13 +172,6 @@ export function GndInterviewsPage({
       />
 
       <div className="gnd-iv-home">
-        <Competency
-          onPractise={(name) => {
-            controller.setField('subject', name);
-            setView({ kind: 'setup' });
-          }}
-          onHistory={() => setView({ kind: 'history' })}
-        />
         <section className="gnd-iv-start" aria-labelledby="gnd-iv-start-title">
           <h2 id="gnd-iv-start-title" className="gnd-section-title">
             Set up a practice
@@ -167,10 +183,7 @@ export function GndInterviewsPage({
                 type="button"
                 className="gnd-iv-method"
                 data-testid={`gnd-iv-method-${value}`}
-                onClick={() => {
-                  controller.setMethod(value);
-                  setView({ kind: 'setup' });
-                }}
+                onClick={() => setUp(value)}
               >
                 <span className="gnd-iv-method-icon">
                   <Icon aria-hidden="true" />
@@ -182,6 +195,17 @@ export function GndInterviewsPage({
             ))}
           </div>
         </section>
+        <Competency
+          roleFocus={roleFocus}
+          onTest={() =>
+            setUp('quick_fire', `${roleName} baseline`, [
+              ...stageLabels,
+              ...roleFocus.skills.slice(0, 3).map((skill) => skill.label),
+            ])
+          }
+          onPractise={(name) => setUp('quick_fire', name, [name])}
+          onHistory={() => setView({ kind: 'history' })}
+        />
       </div>
     </section>
   );
@@ -293,11 +317,19 @@ function PickUp({
 
 type Loaded = { progress: InsightsProgress; tallies: CompetencyTally[] };
 
-/** Your competency: points and level, and how each area is going. */
+/**
+ * Your competency for the role: its usual interview stages and the skills its
+ * job descriptions repeat, ranked by how practice has gone, plus points.
+ * Empty until you take the test.
+ */
 function Competency({
+  roleFocus,
+  onTest,
   onPractise,
   onHistory,
 }: {
+  roleFocus: RoleFocus;
+  onTest: () => void;
   onPractise: (name: string) => void;
   onHistory: () => void;
 }) {
@@ -332,10 +364,14 @@ function Competency({
     };
   }, []);
 
+  const empty = load.status === 'ready' && load.data.progress.sessions === 0;
   const points =
     load.status === 'ready' ? competencyPoints(load.data.progress) : 0;
   const { level, intoLevel } = levelOf(points);
-  const empty = load.status === 'ready' && load.data.progress.sessions === 0;
+  const ranked =
+    load.status === 'ready'
+      ? rankFocus(roleFocus.stages, roleFocus.skills, load.data.tallies)
+      : [];
 
   return (
     <section
@@ -346,34 +382,15 @@ function Competency({
         <h2 id="gnd-iv-competency-title" className="gnd-section-title">
           Your competency
         </h2>
-        <button type="button" className="gnd-link" onClick={onHistory}>
-          Past sessions
-        </button>
+        {load.status === 'ready' && !empty && (
+          <button type="button" className="gnd-link" onClick={onHistory}>
+            Past sessions
+          </button>
+        )}
       </div>
-
-      <div className="gnd-iv-score">
-        <span className="gnd-iv-trophy">
-          <Trophy aria-hidden="true" />
-        </span>
-        <div className="gnd-iv-score-text">
-          <p className="gnd-iv-points" data-testid="gnd-iv-points">
-            {points.toLocaleString('en-GB')} points
-          </p>
-          <p className="gnd-muted">
-            Level {level} · {POINTS_PER_LEVEL - intoLevel} to level {level + 1}
-          </p>
-        </div>
-      </div>
-      <div
-        className="gnd-iv-meter"
-        role="progressbar"
-        aria-label={`Progress to level ${level + 1}`}
-        aria-valuemin={0}
-        aria-valuemax={POINTS_PER_LEVEL}
-        aria-valuenow={intoLevel}
-      >
-        <span style={{ width: `${intoLevel}%` }} />
-      </div>
+      {roleFocus.role && (
+        <p className="gnd-muted gnd-iv-role">For {roleFocus.role}</p>
+      )}
 
       {load.status === 'loading' && (
         <p className="gnd-state" role="status">
@@ -385,81 +402,111 @@ function Competency({
           Your progress couldn’t be loaded.
         </p>
       )}
+
       {empty && (
-        <p className="gnd-muted gnd-iv-empty">
-          Finish a practice to start earning points. Every session, answer and
-          pass adds to your score.
-        </p>
+        <div className="gnd-iv-empty">
+          <span className="gnd-iv-trophy">
+            <Trophy aria-hidden="true" />
+          </span>
+          <p>
+            Take a short test to see where you stand on the stages and skills{' '}
+            {roleFocus.role ? `${roleFocus.role} interviews` : 'interviews'}{' '}
+            usually cover. Then practise to earn points.
+          </p>
+          <Button data-testid="gnd-iv-take-test" onClick={onTest}>
+            Take test
+          </Button>
+        </div>
       )}
+
       {load.status === 'ready' && !empty && (
         <>
-          <dl className="gnd-iv-stats">
-            <div>
-              <dt>Sessions</dt>
-              <dd>{load.data.progress.sessions}</dd>
+          <div className="gnd-iv-score">
+            <span className="gnd-iv-trophy">
+              <Trophy aria-hidden="true" />
+            </span>
+            <div className="gnd-iv-score-text">
+              <p className="gnd-iv-points" data-testid="gnd-iv-points">
+                {points.toLocaleString('en-GB')} points
+              </p>
+              <p className="gnd-muted">
+                Level {level} · {POINTS_PER_LEVEL - intoLevel} to level{' '}
+                {level + 1}
+              </p>
             </div>
-            <div>
-              <dt>Passed</dt>
-              <dd>{load.data.progress.pass}</dd>
-            </div>
-            <div>
-              <dt>Average</dt>
-              <dd>
-                {load.data.progress.averageScore === null
-                  ? '–'
-                  : `${Math.round(load.data.progress.averageScore)}%`}
-              </dd>
-            </div>
-          </dl>
-          {load.data.tallies.length > 0 && (
-            <ul className="gnd-iv-areas" aria-label="Competencies">
-              {load.data.tallies.slice(0, 6).map((tally) => {
-                const share = tally.answered
-                  ? Math.round((tally.passed / tally.answered) * 100)
-                  : 0;
-                return (
-                  <li key={tally.name} className="gnd-iv-area">
-                    <div className="gnd-iv-area-row">
-                      <span className="gnd-iv-area-name">{tally.name}</span>
-                      <span className="gnd-muted">{tally.points} pts</span>
-                    </div>
-                    <div
-                      className="gnd-iv-meter gnd-iv-meter-thin"
-                      aria-hidden="true"
-                    >
-                      <span style={{ width: `${share}%` }} />
-                    </div>
-                    <button
-                      type="button"
-                      className="gnd-link gnd-iv-area-go"
-                      onClick={() => onPractise(tally.name)}
-                    >
-                      {share >= 70 ? 'Keep it sharp' : 'Practise this'}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+          </div>
+          <div
+            className="gnd-iv-meter"
+            role="progressbar"
+            aria-label={`Progress to level ${level + 1}`}
+            aria-valuemin={0}
+            aria-valuemax={POINTS_PER_LEVEL}
+            aria-valuenow={intoLevel}
+          >
+            <span style={{ width: `${intoLevel}%` }} />
+          </div>
+          <ul className="gnd-iv-areas" aria-label="Competencies">
+            {ranked.map((row) => (
+              <li key={`${row.kind}-${row.id}`} className="gnd-iv-area">
+                <div className="gnd-iv-area-row">
+                  <span className="gnd-iv-area-name">
+                    {row.label}
+                    <span className="gnd-iv-area-kind">
+                      {row.kind === 'stage' ? 'Stage' : 'Skill'}
+                    </span>
+                  </span>
+                  <span className="gnd-muted">
+                    {row.score === null ? 'Not tried' : `${row.score}%`}
+                  </span>
+                </div>
+                <div
+                  className="gnd-iv-meter gnd-iv-meter-thin"
+                  aria-hidden="true"
+                >
+                  <span style={{ width: `${row.score ?? 0}%` }} />
+                </div>
+                <button
+                  type="button"
+                  className="gnd-link gnd-iv-area-go"
+                  onClick={() => onPractise(row.label)}
+                >
+                  {row.score !== null && row.score >= 70
+                    ? 'Keep it sharp'
+                    : 'Practise this'}
+                </button>
+              </li>
+            ))}
+          </ul>
         </>
       )}
     </section>
   );
 }
 
-/** The chosen method's setup: subject, target, time and guidance badges. */
+/** The chosen method's setup: subject, role, time and focus. */
 function Setup({
   controller,
+  roleFocus,
+  initialFocus,
   onBack,
   onOpenLocalAi,
 }: {
   controller: PrepareController;
+  roleFocus: RoleFocus;
+  initialFocus: string[];
   onBack: () => void;
   onOpenLocalAi: () => void;
 }) {
   const { values, busy, fieldErrors, editor, targets, notice } = controller;
   const [minutes, setMinutes] = useState<Minutes>(DEFAULT_MINUTES);
-  const [badges, setBadges] = useState<BadgeId[]>([]);
+  const [focus, setFocus] = useState<string[]>(initialFocus);
+  const options = [
+    ...new Set([
+      ...roleFocus.stages.map((stage) => stage.label),
+      ...roleFocus.skills.map((skill) => skill.label),
+      ...initialFocus,
+    ]),
+  ];
   const [note, setNote] = useState(values.additionalGuidance);
   const deepLoop = values.method === 'deep_loop';
   const method = METHODS.find((item) => item.value === values.method)!;
@@ -471,19 +518,21 @@ function Setup({
       setNote(editor.session.additionalGuidance ?? '');
   }, [editor]);
 
-  // Time and badges are turned into the fields the backend knows about.
+  // Time and focus are turned into the fields the backend knows about.
   useEffect(() => {
     if (!deepLoop) controller.setField('questionCount', questionsFor(minutes));
     controller.setField(
       'additionalGuidance',
-      composeGuidance({ badges, minutes, deepLoop, note }),
+      composeGuidance({ focus, minutes, deepLoop, note }),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [minutes, badges, note, deepLoop]);
+  }, [minutes, focus, note, deepLoop]);
 
-  function toggle(id: BadgeId) {
-    setBadges((current) =>
-      current.includes(id) ? current.filter((b) => b !== id) : [...current, id],
+  function toggle(label: string) {
+    setFocus((current) =>
+      current.includes(label)
+        ? current.filter((item) => item !== label)
+        : [...current, label],
     );
   }
 
@@ -498,7 +547,7 @@ function Setup({
   return (
     <section className="gnd-iv" aria-labelledby="gnd-iv-setup-title">
       <Back onClick={onBack}>Back to interviews</Back>
-      <form className="gnd-card gnd-iv-setup" noValidate onSubmit={start}>
+      <form className="gnd-iv-setup" noValidate onSubmit={start}>
         <header className="gnd-iv-setup-head">
           <span className="gnd-iv-method-icon">
             <method.icon aria-hidden="true" />
@@ -532,27 +581,29 @@ function Setup({
             )}
           </div>
 
-          <div className="gnd-form-field">
-            <label className="gnd-label" htmlFor="gnd-iv-careerTargetId">
-              Role it’s for <span className="gnd-muted">(optional)</span>
-            </label>
-            <select
-              id="gnd-iv-careerTargetId"
-              className="gnd-input"
-              value={values.careerTargetId}
-              disabled={targets.status === 'loading'}
-              onChange={(event) =>
-                controller.setField('careerTargetId', event.target.value)
-              }
-            >
-              <option value="">Any role</option>
-              {items.map((target) => (
-                <option key={target.id} value={target.id}>
-                  {target.roleTitle}
-                </option>
-              ))}
-            </select>
-          </div>
+          {items.length > 0 && (
+            <div className="gnd-form-field">
+              <label className="gnd-label" htmlFor="gnd-iv-careerTargetId">
+                Role it’s for <span className="gnd-muted">(optional)</span>
+              </label>
+              <select
+                id="gnd-iv-careerTargetId"
+                className="gnd-input"
+                value={values.careerTargetId}
+                disabled={targets.status === 'loading'}
+                onChange={(event) =>
+                  controller.setField('careerTargetId', event.target.value)
+                }
+              >
+                <option value="">Any role</option>
+                {items.map((target) => (
+                  <option key={target.id} value={target.id}>
+                    {target.roleTitle}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <fieldset className="gnd-iv-group">
             <legend className="gnd-label">How much time do you have?</legend>
@@ -580,16 +631,22 @@ function Setup({
             <legend className="gnd-label">
               Focus on <span className="gnd-muted">(optional)</span>
             </legend>
+            {roleFocus.role && (
+              <p className="gnd-help">
+                Stages {roleFocus.role} interviews usually have, and skills
+                their job descriptions keep asking for.
+              </p>
+            )}
             <div className="gnd-iv-chips">
-              {GUIDANCE_BADGES.map((badge) => (
+              {options.map((label) => (
                 <button
-                  key={badge.id}
+                  key={label}
                   type="button"
                   className="gnd-iv-chip"
-                  aria-pressed={badges.includes(badge.id)}
-                  onClick={() => toggle(badge.id)}
+                  aria-pressed={focus.includes(label)}
+                  onClick={() => toggle(label)}
                 >
-                  {badge.label}
+                  {label}
                 </button>
               ))}
             </div>

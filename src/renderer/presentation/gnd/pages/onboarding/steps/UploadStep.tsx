@@ -1,11 +1,28 @@
-import React, { useEffect, useId, useRef, useState } from 'react';
-import { ExternalLink, Upload } from 'lucide-react';
-import { importDocument, startCvImport } from '../../../../../api';
+import React, { useEffect, useRef, useState } from 'react';
+import { Sparkles, Trash2, Upload } from 'lucide-react';
+import {
+  importDocument,
+  removeDocument,
+  startCvImport,
+} from '../../../../../api';
 import type { CvImport, Document } from '../../../../../../shared/contracts';
 import { failureNotice } from '../../../../../app/Notifications';
 import { Button } from '../../../../components/Button';
+import { CvIllustration } from '../../applications/ProfileSetup';
 import { StepHeading } from '../OnboardingFrame';
+import '../../applications/ProfileSetup.css';
 
+/** "2.4 MB", "320 KB". */
+export function fileSize(bytes: number): string {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+/**
+ * Upload a CV, or answer a few questions instead. A chosen file shows as a
+ * card you can remove. Continuing starts reading the CV in the background
+ * while the rest of onboarding carries on.
+ */
 export function UploadStep({
   onStarted,
   onSkip,
@@ -13,13 +30,10 @@ export function UploadStep({
   onStarted: (cvImport: CvImport) => void;
   onSkip: () => void;
 }) {
-  const consentId = useId();
   const [file, setFile] = useState<Document | null>(null);
-  const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [dragging, setDragging] = useState(false);
-  const [linkedIn, setLinkedIn] = useState(false);
   const depth = useRef(0);
 
   // Drop a CV anywhere on the window. The file's path goes from the preload
@@ -76,19 +90,29 @@ export function UploadStep({
       // receives the stored document's metadata.
       const result = await importDocument('cv', source);
       if (result.cancelled && source === 'drop')
-        setError('Couldn’t add the dropped file. Try Choose file instead.');
-      if (!result.cancelled) setFile(result.item);
+        setError('Couldn’t add the dropped file. Try Choose a CV file.');
+      if (!result.cancelled && result.item) setFile(result.item);
     } catch (e) {
       setError(
-        failureNotice(e, 'Couldn’t add that file. Try a PDF or DOCX.').message,
+        failureNotice(e, 'That file couldn’t be added. Try a PDF or DOCX.')
+          .message,
       );
     } finally {
       setBusy(false);
     }
   }
 
-  async function findRoles() {
-    if (!file || !consent) return;
+  async function remove() {
+    if (!file) return;
+    const removed = file;
+    setFile(null);
+    setError('');
+    // The stored copy is removed too; a failure here only leaves an unused file.
+    await removeDocument(removed.id).catch(() => undefined);
+  }
+
+  async function carryOn() {
+    if (!file) return;
     setBusy(true);
     setError('');
     try {
@@ -104,83 +128,63 @@ export function UploadStep({
 
   return (
     <div className="gnd-stack gnd-upload">
-      <StepHeading
-        title="Start with what you’ve done."
-        lead={
-          <p>
-            Kompas reads your CV, searches the web for matching roles, and
-            tailors each application — you download and apply externally.
-          </p>
-        }
-      />
+      <StepHeading title="Upload your CV" />
 
       {dragging && (
         <div className="gnd-drop-overlay" aria-hidden="true">
           <span>Drop your CV anywhere</span>
         </div>
       )}
-      <div className={`gnd-dropzone${dragging ? ' is-dragging' : ''}`}>
-        <span className="gnd-doc-icon" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-          <span />
-        </span>
-        <Upload className="gnd-upload-icon" aria-hidden="true" />
-        <h2>Upload your CV</h2>
-        <p className="gnd-dropzone-hint">or drop a PDF or DOCX anywhere</p>
-        <p className="gnd-dropzone-file" aria-live="polite">
-          {file ? file.originalName : 'No file added'}
-        </p>
-        <Button
-          variant="secondary"
-          disabled={busy}
-          onClick={() => void choose()}
+
+      <div className="gnd-setup gnd-upload-cards">
+        <div
+          className={`gnd-setup-card is-upload${dragging ? ' is-dragging' : ''}${file ? ' has-file' : ''}`}
+          data-testid="gnd-upload-card"
         >
-          {file ? 'Choose another file' : 'Choose file'}
-        </Button>
-      </div>
-
-      {linkedIn && (
-        <section className="gnd-linkedin" aria-labelledby="gnd-linkedin-title">
-          <h2 id="gnd-linkedin-title">Use your LinkedIn profile</h2>
-          <p>
-            LinkedIn can save your profile, with your experience, education and
-            skills, as a PDF. Kompas reads it just like a CV.
-          </p>
-          <ol>
-            <li>
-              Open{' '}
-              <a
-                href="https://www.linkedin.com/in/me/"
-                target="_blank"
-                rel="noreferrer"
+          <Upload aria-hidden="true" className="gnd-setup-icon" />
+          <h3>Upload your CV</h3>
+          {file ? (
+            <div className="gnd-file-card" data-testid="gnd-file-card">
+              <span className="gnd-file-type" aria-hidden="true">
+                {/\.docx$/i.test(file.originalName) ? 'DOCX' : 'PDF'}
+              </span>
+              <span className="gnd-file-text">
+                <span className="gnd-file-name">{file.originalName}</span>
+                <span className="gnd-file-size">
+                  {fileSize(file.sizeBytes)}
+                </span>
+              </span>
+              <button
+                type="button"
+                className="gnd-file-remove"
+                aria-label={`Remove ${file.originalName}`}
+                disabled={busy}
+                onClick={() => void remove()}
               >
-                your LinkedIn profile
-                <ExternalLink aria-hidden="true" />
-              </a>
-            </li>
-            <li>
-              Click <strong>Resources</strong> (or <strong>More</strong>), then{' '}
-              <strong>Save to PDF</strong>
-            </li>
-            <li>Drop the downloaded file here, or press Choose file</li>
-          </ol>
-        </section>
-      )}
-
-      <label className="gnd-consent" htmlFor={consentId}>
-        <input
-          id={consentId}
-          type="checkbox"
-          checked={consent}
-          onChange={(event) => setConsent(event.target.checked)}
-        />
-        <span>
-          I agree to Kompas reading my CV to find relevant roles and prepare
-          tailored CVs. Everything stays on this computer.
-        </span>
-      </label>
+                <Trash2 aria-hidden="true" />
+              </button>
+            </div>
+          ) : (
+            <>
+              <p className="gnd-muted">No file added</p>
+              <Button
+                variant="outline"
+                disabled={busy}
+                onClick={() => void choose()}
+              >
+                Choose a CV file
+              </Button>
+            </>
+          )}
+        </div>
+        <div className="gnd-setup-card">
+          <CvIllustration />
+          <h3>Don’t have a CV?</h3>
+          <Button variant="outline" disabled={busy} onClick={onSkip}>
+            <Sparkles aria-hidden="true" /> Answer a few questions
+          </Button>
+        </div>
+      </div>
 
       {error && (
         <p className="gnd-message" role="alert">
@@ -188,28 +192,18 @@ export function UploadStep({
         </p>
       )}
 
-      <div className="gnd-actions">
-        <Button
-          size="hero"
-          disabled={!file || !consent || busy}
-          onClick={() => void findRoles()}
-        >
-          Find me roles
-        </Button>
-        {!linkedIn && (
-          <button
-            type="button"
-            className="gnd-text-link"
-            data-testid="gnd-linkedin-open"
-            onClick={() => setLinkedIn(true)}
+      {file && (
+        <div className="gnd-actions gnd-upload-next">
+          <Button
+            size="hero"
+            disabled={busy}
+            data-testid="gnd-upload-continue"
+            onClick={() => void carryOn()}
           >
-            No CV? Use your LinkedIn profile
-          </button>
-        )}
-        <button type="button" className="gnd-text-link" onClick={onSkip}>
-          Add my roles myself
-        </button>
-      </div>
+            Continue
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

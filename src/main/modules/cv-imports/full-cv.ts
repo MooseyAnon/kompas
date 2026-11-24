@@ -12,7 +12,8 @@ import type { GenerationEntry } from '../inference/inference.service';
 import type { CvInferenceClient } from './model';
 
 export const FULL_CV_VERSION = 'cv-extract-four-pass-v3';
-export const CV_PARSE_TIMEOUT_MS = 180_000;
+/** Read in the background while onboarding carries on, so slower Macs get time. */
+export const CV_PARSE_TIMEOUT_MS = 480_000;
 
 // ---------------------------------------------------------------------------
 // JSON schema sent to the model (structured-output contract)

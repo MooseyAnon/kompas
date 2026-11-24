@@ -62,7 +62,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ui-pill-tabs-indicator {
+  :root:not([data-motion='full']) .ui-pill-tabs-indicator {
     transition: none;
   }
 }

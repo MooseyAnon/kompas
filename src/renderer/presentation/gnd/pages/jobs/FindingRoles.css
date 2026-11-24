@@ -198,14 +198,14 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .gnd-finding-num,
-  .gnd-finding-steps li,
-  .is-now .gnd-finding-knob,
-  .is-done .gnd-finding-knob,
-  .gnd-finding-ticker span {
+  :root:not([data-motion='full']) .gnd-finding-num,
+  :root:not([data-motion='full']) .gnd-finding-steps li,
+  :root:not([data-motion='full']) .is-now .gnd-finding-knob,
+  :root:not([data-motion='full']) .is-done .gnd-finding-knob,
+  :root:not([data-motion='full']) .gnd-finding-ticker span {
     animation: none;
   }
-  .gnd-finding-bar span {
+  :root:not([data-motion='full']) .gnd-finding-bar span {
     transition: none;
   }
 }

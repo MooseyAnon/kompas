@@ -13,6 +13,7 @@ const api = vi.hoisted(() => ({
   importDocument: vi.fn(),
   startCvImport: vi.fn(),
   getCvImport: vi.fn(),
+  removeDocument: vi.fn(),
   applyProfileImport: vi.fn(),
   listConfirmedSkills: vi.fn(),
   replaceConfirmedSkills: vi.fn(),
@@ -253,6 +254,60 @@ describe('GND onboarding', () => {
     await act(async () => root.render(<Onboarding onComplete={vi.fn()} />));
     await click('Begin');
     expect(step()).toBe('onboarding-step-upload');
-    expect(button('Find me roles').disabled).toBe(true);
+    // Continue only appears once a file is chosen.
+    expect(container.textContent).not.toContain('Continue');
+    expect(container.textContent).toContain('Answer a few questions');
+  });
+
+  it('reads the CV in the background and fills in roles when it finishes', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    api.getInferenceSettings.mockResolvedValue({
+      resolvedModel: { installed: true, locality: 'local' },
+    });
+    api.importDocument.mockResolvedValue({
+      cancelled: false,
+      item: {
+        id: 'doc-1',
+        originalName: 'Cil_Poon_CV.pdf',
+        sizeBytes: 820_000,
+      },
+    });
+    const processing = {
+      id: 'imp-1',
+      status: 'processing',
+      draft: null,
+      diagnostics: {},
+    };
+    api.startCvImport.mockResolvedValue(processing);
+    api.getCvImport.mockResolvedValue({
+      ...processing,
+      status: 'ready',
+      draft: {
+        profile: {
+          currentRole: { status: 'detected', value: 'Lead Product Designer' },
+          location: { status: 'detected', value: 'London' },
+        },
+        details: { inferences: [], experiences: [], projects: [] },
+        experiences: [],
+      },
+    });
+    await act(async () => root.render(<Onboarding onComplete={vi.fn()} />));
+    await click('Begin');
+    await click('Choose a CV file');
+    expect(
+      container.querySelector('[data-testid="gnd-file-card"]')?.textContent,
+    ).toContain('Cil_Poon_CV.pdf801 KB');
+    await click('Continue');
+    expect(step()).toBe('onboarding-step-roles');
+    expect(container.textContent).toContain(
+      'Reading your CV in the background',
+    );
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1500);
+    });
+    await flush();
+    expect(container.textContent).toContain('Your CV is read');
+    expect(container.textContent).toContain('Product Designer');
+    vi.useRealTimers();
   });
 });

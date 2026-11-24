@@ -1,3 +1,4 @@
+import { motionReduced } from '../../../motion';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   applyProfileImport,
@@ -5,6 +6,7 @@ import {
   createSavedSearch,
   createTarget,
   executeDiscoveryRun,
+  getCvImport,
   listConfirmedSkills,
   listTargets,
   replaceConfirmedSkills,
@@ -24,7 +26,8 @@ import {
   skillsFrom,
   suggestRoles,
 } from './onboardingPlan';
-import { LearningStep } from './steps/LearningStep';
+import { LearningStep, failureMessage } from './steps/LearningStep';
+import { ReadingNote } from './steps/ReadingNote';
 import { LocalAiStep, localAiReady } from './steps/LocalAiStep';
 import { PreferencesStep } from './steps/PreferencesStep';
 import { ProfileStep } from './steps/ProfileStep';
@@ -74,11 +77,7 @@ export function Onboarding({
   const setStep = (next: Step) => {
     if (pending.current) window.clearTimeout(pending.current);
     // No motion when it's turned off (or can't be checked, as in tests).
-    if (
-      typeof window.matchMedia !== 'function' ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    )
-      return setShownStep(next);
+    if (motionReduced()) return setShownStep(next);
     setLeaving(true);
     pending.current = window.setTimeout(() => {
       pending.current = null;
@@ -103,6 +102,36 @@ export function Onboarding({
   const savedSearchId = useRef<string | null>(null);
   const runStarted = useRef(false);
 
+  const rolesTouched = useRef(false);
+
+  // The CV is read in the background while the person answers the rest.
+  useEffect(() => {
+    if (cvImport?.status !== 'processing') return;
+    let live = true;
+    const timer = window.setTimeout(async () => {
+      const next = await getCvImport(cvImport.id).catch(() => null);
+      if (live && next) setCvImport(next);
+    }, 1200);
+    return () => {
+      live = false;
+      window.clearTimeout(timer);
+    };
+  }, [cvImport]);
+
+  // Once it's read, offer what it found, without undoing anything typed.
+  const appliedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!cvImport?.draft || cvImport.status === 'processing') return;
+    if (cvImport.status === 'failed' || appliedFor.current === cvImport.id)
+      return;
+    appliedFor.current = cvImport.id;
+    if (!rolesTouched.current) setRoles(suggestRoles(cvImport.draft));
+    setLocation(
+      (current) => current || detected(cvImport.draft?.profile.location),
+    );
+  }, [cvImport]);
+
+  const reading = cvImport?.status === 'processing';
   const draft = cvImport?.draft ?? null;
   const suggested = useMemo(() => suggestRoles(draft), [draft]);
   const card = profileCard(draft, roles, location, arrangement);
@@ -119,14 +148,10 @@ export function Onboarding({
     setStep(ready ? 'upload' : 'local-ai');
   }
 
+  /** Finished reading while waiting on the last step: show the profile. */
   function cvRead(settled: CvImport) {
     setCvImport(settled);
-    const fromCv = suggestRoles(settled.draft);
-    setRoles(fromCv);
-    setLocation(
-      (current) => current || detected(settled.draft?.profile.location),
-    );
-    setStep('roles');
+    setStep('profile');
   }
 
   function withoutCv() {
@@ -236,7 +261,8 @@ export function Onboarding({
         <UploadStep
           onStarted={(item) => {
             setCvImport(item);
-            setStep('learning');
+            rolesTouched.current = false;
+            setStep('roles');
           }}
           onSkip={withoutCv}
         />,
@@ -250,31 +276,71 @@ export function Onboarding({
           onRead={cvRead}
           onRetry={() => setStep('upload')}
           onSetupAi={() => setStep('local-ai')}
-          onSkip={withoutCv}
+          onSkip={() => {
+            setCvImport(null);
+            setStep('profile');
+          }}
         />,
       );
     case 'roles':
       return frame(
         'roles',
         'center',
-        <RolesStep
-          suggested={suggested}
-          roles={roles}
-          onChange={setRoles}
-          onNext={() => setStep('preferences')}
-        />,
+        <>
+          <RolesStep
+            suggested={suggested}
+            roles={roles}
+            onChange={(next) => {
+              rolesTouched.current = true;
+              setRoles(next);
+            }}
+            onNext={() => setStep('preferences')}
+          />
+          <ReadingNote
+            cvImport={cvImport}
+            failure={
+              cvImport?.status === 'failed'
+                ? failureMessage({
+                    kind:
+                      cvImport.diagnostics.errorCode === 'MODEL_UNAVAILABLE'
+                        ? 'model'
+                        : 'file',
+                    code: cvImport.diagnostics.errorCode,
+                  })
+                : null
+            }
+            onRetry={() => setStep('upload')}
+          />
+        </>,
       );
     case 'preferences':
       return frame(
         'preferences',
         'center',
-        <PreferencesStep
-          location={location}
-          arrangement={arrangement}
-          onLocation={setLocation}
-          onArrangement={setArrangement}
-          onNext={() => setStep('profile')}
-        />,
+        <>
+          <PreferencesStep
+            location={location}
+            arrangement={arrangement}
+            onLocation={setLocation}
+            onArrangement={setArrangement}
+            onNext={() => setStep(reading ? 'learning' : 'profile')}
+          />
+          <ReadingNote
+            cvImport={cvImport}
+            failure={
+              cvImport?.status === 'failed'
+                ? failureMessage({
+                    kind:
+                      cvImport.diagnostics.errorCode === 'MODEL_UNAVAILABLE'
+                        ? 'model'
+                        : 'file',
+                    code: cvImport.diagnostics.errorCode,
+                  })
+                : null
+            }
+            onRetry={() => setStep('upload')}
+          />
+        </>,
       );
     case 'profile':
       return frame(

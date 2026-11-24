@@ -799,37 +799,141 @@
   }
 }
 
-/* No CV: use a LinkedIn profile saved as a PDF */
-.gnd-linkedin {
-  width: min(100%, 520px);
-  padding: 18px 22px;
-  border-radius: 16px;
-  background: #ffffffb3;
+/* Upload step: two cards, and a chosen file shown as a card */
+.gnd-upload-cards {
+  width: min(100%, 900px);
+  text-align: center;
+}
+@media (max-width: 760px) {
+  .gnd-upload-cards {
+    grid-template-columns: 1fr;
+  }
+}
+.gnd-setup-card.is-upload {
+  transition:
+    border-color var(--motion-fast),
+    background var(--motion-fast),
+    transform var(--motion-fast);
+}
+.gnd-setup-card.is-dragging {
+  border-color: var(--accent);
+  background: #0026ff0d;
+  transform: scale(1.02);
+}
+.gnd-file-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(100%, 360px);
+  margin-top: 14px;
+  padding: 12px 12px 12px 14px;
+  border: 1px solid #e3e2da;
+  border-radius: 14px;
+  background: var(--surface);
   text-align: left;
+  animation: gnd-card-in 320ms ease-out both;
 }
-.gnd-linkedin h2 {
-  margin: 0 0 6px;
-  font-family: var(--font-family-display);
-  font-weight: var(--weight-medium);
-  font-size: 18px;
-}
-.gnd-linkedin p {
-  margin: 0 0 10px;
+.gnd-file-type {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #e3e2da;
+  border-radius: 10px;
+  background: #f5f4ef;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--text-muted);
 }
-.gnd-linkedin ol {
+.gnd-file-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.gnd-file-name {
+  overflow: hidden;
+  font-weight: var(--weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gnd-file-size {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.gnd-file-remove {
   display: grid;
-  gap: 6px;
-  margin: 0;
-  padding-left: 20px;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
 }
-.gnd-linkedin a {
-  display: inline-flex;
+.gnd-file-remove:hover:not(:disabled) {
+  background: #0000000d;
+  color: var(--error);
+}
+.gnd-file-remove svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Reading the CV in the background: a small note under the step */
+.gnd-reading-note {
+  display: flex;
   align-items: center;
-  gap: 4px;
-  color: var(--accent);
+  gap: 12px;
+  width: min(100%, 560px);
+  margin: 28px auto 0;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: #ffffffa6;
+  backdrop-filter: blur(8px);
+  font-size: 14px;
+  color: var(--text-muted);
+  text-align: left;
+  animation: gnd-card-in 400ms ease-out both;
 }
-.gnd-linkedin a svg {
-  width: 14px;
-  height: 14px;
+.gnd-reading-note.is-failed {
+  background: var(--error-soft);
+  color: var(--error);
+}
+.gnd-reading-note .gnd-text-link {
+  margin-left: auto;
+  white-space: nowrap;
+}
+.gnd-reading-page {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  width: 22px;
+  height: 28px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 2px 6px #0000001a;
+}
+.gnd-reading-page span {
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.5;
+}
+.gnd-reading-page span:last-child {
+  width: 60%;
+}
+.gnd-reading-note.is-reading .gnd-reading-page {
+  animation: gnd-cv-spin 2.6s ease-in-out infinite;
+}
+.gnd-reading-note.is-done .gnd-reading-page span {
+  background: #2f9e62;
+  opacity: 1;
 }

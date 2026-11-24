@@ -142,7 +142,7 @@ export function LearningStep({
         </div>
       ) : (
         <p className="gnd-footnote" role="status">
-          This should only take a few minutes
+          Nearly there. Finishing reading your CV…
         </p>
       )}
     </div>

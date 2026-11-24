@@ -80,10 +80,10 @@ button.gnd-quick-card:focus-visible {
   right: 12px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .gnd-quick-card {
+  :root:not([data-motion='full']) .gnd-quick-card {
     transition: none;
   }
-  button.gnd-quick-card:hover {
+  :root:not([data-motion='full']) button.gnd-quick-card:hover {
     transform: none;
   }
 }

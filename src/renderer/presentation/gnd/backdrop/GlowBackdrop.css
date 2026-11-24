@@ -172,10 +172,10 @@
    fields still breathe, slowly and on the spot, so the page doesn't feel
    dead; nothing travels across the window. */
 @media (prefers-reduced-motion: reduce) {
-  .glow-backdrop .glow {
+  :root:not([data-motion='full']) .glow-backdrop .glow {
     animation: glow-breathe 18s ease-in-out infinite alternate !important;
   }
-  .glow-backdrop .glow:nth-child(even) {
+  :root:not([data-motion='full']) .glow-backdrop .glow:nth-child(even) {
     animation-delay: -9s !important;
   }
 }

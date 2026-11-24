@@ -238,7 +238,7 @@ export function QuickProfile({
 }
 
 /** A CV with a pencil and a tick, in GND's soft palette. */
-function CvIllustration() {
+export function CvIllustration() {
   return (
     <svg
       className="gnd-setup-art"

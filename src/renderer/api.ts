@@ -195,6 +195,12 @@ export async function startDiscoveryRun(
     await jobDiscovery<{ item: DiscoveryRun }>('runs.start', { savedSearchId })
   ).item;
 }
+/** Tell discovery which roles are on screen so their listings are read first. */
+export async function focusDiscovery(opportunityIds: string[]): Promise<void> {
+  await jobDiscovery('runs.focus', {
+    opportunityIds: opportunityIds.slice(0, 50),
+  });
+}
 export async function cancelDiscoveryRun(id: string): Promise<DiscoveryRun> {
   return (await jobDiscovery<{ item: DiscoveryRun }>('runs.cancel', { id }))
     .item;

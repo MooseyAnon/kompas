@@ -566,7 +566,8 @@ async function generateJd(
   try {
     return await inference.generate({
       callerModule: 'jobDiscovery',
-      execution: { priority: 'background', signal },
+      // Ahead of the CV read: roles on screen need their listings first.
+      execution: { priority: 'normal', signal },
       providerId: settings.providerId,
       modelId: settings.modelId,
       messages,

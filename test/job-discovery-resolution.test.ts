@@ -1467,3 +1467,112 @@ it('upgrades a populated v11 candidate without resetting its source or decision'
   expect(upgraded.pragma('foreign_key_check')).toEqual([]);
   upgraded.close();
 });
+
+it('traces a LinkedIn listing to the company’s Greenhouse posting before any web search', async () => {
+  const { id } = run();
+  const searchesMade: string[] = [];
+  const feedsRead: string[] = [];
+  const service = new DiscoveryRunsService(
+    repo,
+    searches,
+    () => new Date(now),
+    {
+      search: async (query: string) => {
+        searchesMade.push(query);
+        return { providerId: 'fake', results: [] };
+      },
+      readPage: async (url: string) => page(url),
+      readFeed: async (url: string) => {
+        feedsRead.push(url);
+        return url.startsWith(
+          'https://boards-api.greenhouse.io/v1/boards/acme/',
+        )
+          ? JSON.stringify({
+              jobs: [
+                {
+                  title: 'Engineering Intern',
+                  absolute_url: canonical,
+                  location: { name: 'London' },
+                },
+                {
+                  title: 'Sales Lead',
+                  absolute_url: 'https://boards.greenhouse.io/acme/jobs/1',
+                  location: { name: 'London' },
+                },
+              ],
+            })
+          : null;
+      },
+    },
+  );
+  expect((await service.resolve({ id }))[0]).toMatchObject({
+    canonicalUrl: canonical,
+    discoveredUrl: source,
+    resolutionReason: 'verified',
+  });
+  expect(feedsRead).toContain(
+    'https://boards-api.greenhouse.io/v1/boards/acme/jobs',
+  );
+  expect(searchesMade).toHaveLength(0);
+});
+
+it('falls back to web search when the company has no public job board', async () => {
+  const { id } = run();
+  const searchesMade: string[] = [];
+  const service = new DiscoveryRunsService(
+    repo,
+    searches,
+    () => new Date(now),
+    {
+      search: async (query: string) => {
+        searchesMade.push(query);
+        return {
+          providerId: 'fake',
+          results: [{ url: canonical, title: 'Job', rank: 1 }],
+        };
+      },
+      readPage: async (url: string) => page(url),
+      readFeed: async () => null,
+    },
+  );
+  expect((await service.resolve({ id }))[0].canonicalUrl).toBe(canonical);
+  expect(searchesMade.length).toBeGreaterThan(0);
+});
+
+it('reads roles on screen first, then the rest in the order found', () => {
+  const config = newJobDiscoveryConfiguration();
+  config.name = 'Focus';
+  config.intent.targetRoles = ['Designer'];
+  const saved = searches.create({ config });
+  const service = new DiscoveryRunsService(repo, searches, () => new Date(now));
+  const started = service.start({ savedSearchId: saved.id });
+  for (const key of ['1', '2', '3'])
+    repo.observe(
+      started.id,
+      {
+        provider: 'linkedin',
+        key,
+        discoveredUrl: `https://uk.linkedin.com/jobs/view/${key}`,
+        collectionUrl: null,
+        title: `Designer ${key}`,
+        company: `Co ${key}`,
+        location: 'London',
+        postingAge: null,
+      },
+      new Date(now).toISOString(),
+    );
+  const ids = service.candidates({ id: started.id }).map((c) => c.sourceId);
+  const take = (queue: string[]) =>
+    (service as unknown as { takeNext: (q: string[]) => string }).takeNext(
+      queue,
+    );
+  const queue = [...ids];
+  service.focus([repo.opportunityOfSource(ids[2])!]);
+  expect(take(queue)).toBe(ids[2]);
+  expect(take(queue)).toBe(ids[0]);
+  // A focus older than five minutes no longer reorders.
+  service.focus([repo.opportunityOfSource(ids[1])!]);
+  now += 6 * 60_000;
+  const rest = [ids[0], ids[1]];
+  expect(take(rest)).toBe(ids[0]);
+});

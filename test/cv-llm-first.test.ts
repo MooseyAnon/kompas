@@ -660,7 +660,7 @@ describe('LLM-first CV projection', () => {
     expect(inference.generate).toHaveBeenCalledTimes(2);
   });
 
-  it('times out a CV parse after 8 minutes', async () => {
+  it('times out a CV parse after 45 minutes', async () => {
     vi.useFakeTimers();
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cw-llm-timeout-'));
     try {
@@ -714,7 +714,7 @@ describe('LLM-first CV projection', () => {
         const item = service.start(documentId);
         await vi.advanceTimersByTimeAsync(0);
         expect(inference.generate).toHaveBeenCalledOnce();
-        await vi.advanceTimersByTimeAsync(479_999);
+        await vi.advanceTimersByTimeAsync(2_699_999);
         expect(service.get(item.id).status).toBe('processing');
         await vi.advanceTimersByTimeAsync(1);
         expect(service.get(item.id)).toMatchObject({

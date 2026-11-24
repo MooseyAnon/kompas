@@ -252,57 +252,7 @@ describe('GND onboarding', () => {
     expect(container.textContent).toContain('Answer a few questions');
   });
 
-  it('reads the CV quietly in the background and fills in roles when it finishes', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    api.getInferenceSettings.mockResolvedValue({
-      resolvedModel: { installed: true, locality: 'local' },
-    });
-    api.importDocument.mockResolvedValue({
-      cancelled: false,
-      item: {
-        id: 'doc-1',
-        originalName: 'Cil_Poon_CV.pdf',
-        sizeBytes: 820_000,
-      },
-    });
-    const processing = {
-      id: 'imp-1',
-      status: 'processing',
-      draft: null,
-      diagnostics: {},
-    };
-    api.startCvImport.mockResolvedValue(processing);
-    api.getCvImport.mockResolvedValue({
-      ...processing,
-      status: 'ready',
-      draft: {
-        profile: {
-          currentRole: { status: 'detected', value: 'Lead Product Designer' },
-          location: { status: 'detected', value: 'London' },
-        },
-        details: { inferences: [], experiences: [], projects: [] },
-        experiences: [],
-      },
-    });
-    await act(async () => root.render(<Onboarding onComplete={vi.fn()} />));
-    await click('Begin');
-    await click('Choose a CV file');
-    expect(
-      container.querySelector('[data-testid="gnd-file-card"]')?.textContent,
-    ).toContain('Cil_Poon_CV.pdf801 KB');
-    await click('Continue');
-    expect(step()).toBe('onboarding-step-roles');
-    // Reading happens quietly: no note on the role step.
-    expect(container.textContent).not.toContain('Reading your CV');
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1500);
-    });
-    await flush();
-    expect(container.textContent).toContain('Product Designer');
-    vi.useRealTimers();
-  });
-
-  it('finishing while the CV is still being read goes home and keeps reading', async () => {
+  it('keeps the CV until the job search has started, then reads it in the background', async () => {
     api.getInferenceSettings.mockResolvedValue({
       resolvedModel: { installed: true, locality: 'local' },
     });
@@ -323,6 +273,8 @@ describe('GND onboarding', () => {
     await click('Begin');
     await click('Choose a CV file');
     await click('Continue');
+    // Nothing is read during onboarding.
+    expect(api.startCvImport).not.toHaveBeenCalled();
     const search =
       container.querySelector<HTMLInputElement>('#gnd-role-search')!;
     await act(async () => type(search, 'Designer'));
@@ -334,6 +286,10 @@ describe('GND onboarding', () => {
     await click('That’s my direction');
     await click('Find roles');
     expect(api.applyProfileImport).not.toHaveBeenCalled();
+    // Read only after the search started, so listings get local AI first.
+    expect(api.startDiscoveryRun.mock.invocationCallOrder[0]).toBeLessThan(
+      api.startCvImport.mock.invocationCallOrder[0],
+    );
     expect(window.localStorage.getItem('kompas.pendingCvImport')).toBe('imp-2');
     expect(onComplete).toHaveBeenCalledWith({ destination: 'home' });
   });

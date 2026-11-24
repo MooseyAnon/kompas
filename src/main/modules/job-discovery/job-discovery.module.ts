@@ -19,6 +19,8 @@ import {
   discoveryCandidateOutput,
   discoveryCapturesOutput,
   jdExtractionsOutput,
+  discoveryFocusInput,
+  discoveryFocusOutput,
   discoveryMatchesOutput,
   discoveryDecideInput,
   discoveryTrackInput,
@@ -151,6 +153,14 @@ function runLifecycleCommands(runs: DiscoveryRunsService): CommandMap {
       input: discoveryRunListInput,
       output: discoveryRunListOutput,
       handle: (input) => runs.list(input),
+    }),
+    'runs.focus': defineCommand({
+      input: discoveryFocusInput,
+      output: discoveryFocusOutput,
+      handle: (input) => {
+        runs.focus(input.opportunityIds);
+        return { ok: true as const };
+      },
     }),
     'runs.cancel': defineCommand({
       input: discoveryRunIdInput,

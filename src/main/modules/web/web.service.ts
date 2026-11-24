@@ -60,6 +60,15 @@ export interface WebSearchOptions {
  * `readPage` is a reserved capability (Stage 009.2) and is deliberately not
  * exposed here until a real adapter implements it.
  */
+const FEED_HOSTS = new Set([
+  'boards-api.greenhouse.io',
+  'api.lever.co',
+  'api.ashbyhq.com',
+  'apply.workable.com',
+]);
+const FEED_TIMEOUT_MS = 8_000;
+const FEED_MAX_CHARS = 2_000_000;
+
 export class WebService {
   private readonly registry: AdapterRegistry;
   private readonly preferences: Record<WebCapability, readonly string[]>;
@@ -134,6 +143,42 @@ export class WebService {
       };
     } catch (error) {
       throw this.recordFailure('search', startedAt, error, queueStats.detail());
+    }
+  }
+
+  /**
+   * Read a public job-board JSON feed (Greenhouse, Lever, Ashby, Workable).
+   * Only those hosts, over HTTPS, with a short timeout and size cap; these
+   * feeds are published for other sites to read. Null when unavailable.
+   */
+  async readFeed(
+    url: string,
+    options: { signal?: AbortSignal } = {},
+  ): Promise<string | null> {
+    let host: string;
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== 'https:') return null;
+      host = parsed.hostname;
+    } catch {
+      return null;
+    }
+    if (!FEED_HOSTS.has(host)) return null;
+    const timeout = AbortSignal.timeout(FEED_TIMEOUT_MS);
+    const signal = options.signal
+      ? AbortSignal.any([options.signal, timeout])
+      : timeout;
+    try {
+      const response = await fetch(url, {
+        signal,
+        redirect: 'error',
+        headers: { accept: 'application/json' },
+      });
+      if (!response.ok) return null;
+      const body = await response.text();
+      return body.length > FEED_MAX_CHARS ? null : body;
+    } catch {
+      return null;
     }
   }
 

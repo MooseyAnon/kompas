@@ -115,6 +115,7 @@ exports[`complete registered IPC catalogue > pins production actions and major v
   "jobDiscovery@1.runs.execute",
   "jobDiscovery@1.runs.extract",
   "jobDiscovery@1.runs.extractions",
+  "jobDiscovery@1.runs.focus",
   "jobDiscovery@1.runs.get",
   "jobDiscovery@1.runs.list",
   "jobDiscovery@1.runs.matches",

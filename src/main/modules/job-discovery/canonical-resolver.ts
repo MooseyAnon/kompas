@@ -13,6 +13,14 @@ import {
   type Verification,
 } from './jd-verifier';
 import type { DiscoveryRunsRepository } from './runs.repository';
+import {
+  ATS_PROVIDERS,
+  feedUrl,
+  matchingJobs,
+  parseFeed,
+  slugsFor,
+  type AtsJob,
+} from './ats-lookup';
 
 const MAX_QUERY_LENGTH = 256;
 const MAX_RESULTS_PER_SEARCH = 20;
@@ -123,7 +131,8 @@ export class CanonicalResolver {
 
   constructor(
     private readonly repo: DiscoveryRunsRepository,
-    private readonly web: Pick<WebService, 'search' | 'readPage'>,
+    private readonly web: Pick<WebService, 'search' | 'readPage'> &
+      Partial<Pick<WebService, 'readFeed'>>,
     private readonly clock: () => Date,
   ) {}
 
@@ -242,6 +251,9 @@ export class CanonicalResolver {
       return;
     }
 
+    // First: the company's own job board, read from its public feed.
+    if ((await this.runAtsLookup(ctx)) === 'accepted') return;
+
     const searches = queries(candidate, run).slice(
       0,
       run.configSnapshot.run.maxTargetedSearchesPerCandidate,
@@ -298,6 +310,84 @@ export class CanonicalResolver {
       best: undefined,
       reason: 'no_match',
     };
+  }
+
+  /** Company → its board's jobs (or null when it has none), per run. */
+  private readonly boards = new Map<string, AtsJob[] | null>();
+  private static readonly MAX_BOARDS = 500;
+
+  /**
+   * Look the company up on Greenhouse, Lever, Ashby and Workable and read the
+   * matching postings through the usual verification. Recorded as a search
+   * so diagnostics show it.
+   */
+  private async runAtsLookup(ctx: ResolutionContext): Promise<ResultOutcome> {
+    const company = ctx.candidate.company;
+    // Only with a web service that can read public job-board feeds.
+    if (typeof this.web.readFeed !== 'function') return 'next';
+    if (!company || !ctx.available()) return 'next';
+    const role = candidateRoleTitle(
+      ctx.candidate.title,
+      company,
+      ctx.candidate.location,
+    );
+    const key = `${ctx.run.id}:${company.toLowerCase()}`;
+    let jobs = this.boards.get(key);
+    if (jobs === undefined) {
+      jobs = await this.readBoards(ctx, company);
+      if (this.boards.size >= CanonicalResolver.MAX_BOARDS) this.boards.clear();
+      this.boards.set(key, jobs);
+    }
+    const matches = jobs
+      ? matchingJobs(role, ctx.candidate.location, jobs)
+      : [];
+    if (!matches.length || !ctx.available()) return 'next';
+
+    const query = `company board: ${role} ${company}`.slice(0, 256);
+    const searchId = this.repo.beginResolutionSearch(
+      ctx.run.id,
+      ctx.candidate.sourceId,
+      1,
+      query,
+      this.clock().toISOString(),
+    );
+    this.repo.finishResolutionSearch(
+      searchId,
+      'completed',
+      null,
+      this.clock().toISOString(),
+    );
+    const outcome = await this.readResults(
+      ctx,
+      searchId,
+      matches.map(
+        (job) => ({ url: job.url, title: job.title }) as SearchResult,
+      ),
+    );
+    if (outcome !== 'accepted')
+      this.repo.settleResolutionResults(searchId, 'stopped');
+    return outcome;
+  }
+
+  /** The first board found for the company, or null. */
+  private async readBoards(
+    ctx: ResolutionContext,
+    company: string,
+  ): Promise<AtsJob[] | null> {
+    for (const slug of slugsFor(company)) {
+      const found = await Promise.all(
+        ATS_PROVIDERS.map(async (provider) => {
+          const body = await this.web
+            .readFeed?.(feedUrl(provider, slug), { signal: ctx.signal })
+            .catch(() => null);
+          return body ? parseFeed(provider, body) : [];
+        }),
+      );
+      if (!ctx.available()) return null;
+      const jobs = found.flat();
+      if (jobs.length) return jobs;
+    }
+    return null;
   }
 
   /** Runs one search; `stop` ends the candidate's search loop. */

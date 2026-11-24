@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import {
   applyProfileImport,
   getCvImport,
+  listDiscoveryRuns,
+  refreshDiscoveryMatches,
   listConfirmedSkills,
   replaceConfirmedSkills,
 } from '../../../../api';
@@ -50,6 +52,10 @@ export async function applyCvImport(cvImport: CvImport) {
     const current = await listConfirmedSkills();
     await replaceConfirmedSkills([...new Set([...current, ...skills])]);
   }
+  // Roles already read were scored without the CV's skills; score them again.
+  const runs = await listDiscoveryRuns({ limit: 3 }).catch(() => null);
+  for (const run of runs?.items ?? [])
+    await refreshDiscoveryMatches(run.id).catch(() => undefined);
 }
 
 /** Finishes a CV read that outlived onboarding, then says so. */

@@ -5,22 +5,18 @@ import {
   createSavedSearch,
   createTarget,
   executeDiscoveryRun,
-  getCvImport,
+  startCvImport,
   listTargets,
   startDiscoveryRun,
 } from '../../../../api';
 import type {
   CvImport,
+  Document,
   WorkArrangement,
 } from '../../../../../shared/contracts';
 import { failureNotice } from '../../../../app/Notifications';
 import { OnboardingFrame } from './OnboardingFrame';
-import {
-  detected,
-  profileCard,
-  searchConfigFor,
-  suggestRoles,
-} from './onboardingPlan';
+import { profileCard, searchConfigFor, suggestRoles } from './onboardingPlan';
 import { LearningStep } from './steps/LearningStep';
 import { applyCvImport, rememberPendingCv } from './pendingCv';
 import { LocalAiStep, localAiReady } from './steps/LocalAiStep';
@@ -88,6 +84,8 @@ export function Onboarding({
   );
   const [checking, setChecking] = useState(false);
   const [cvImport, setCvImport] = useState<CvImport | null>(null);
+  // The chosen CV; it's read after the job search starts.
+  const [cvFile, setCvFile] = useState<Document | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
   const [location, setLocation] = useState('');
   const [arrangement, setArrangement] = useState<WorkArrangement>('any');
@@ -96,35 +94,7 @@ export function Onboarding({
   // Retries must not create a second saved search or run.
   const savedSearchId = useRef<string | null>(null);
   const runStarted = useRef(false);
-
-  const rolesTouched = useRef(false);
-
-  // The CV is read in the background while the person answers the rest.
-  useEffect(() => {
-    if (cvImport?.status !== 'processing') return;
-    let live = true;
-    const timer = window.setTimeout(async () => {
-      const next = await getCvImport(cvImport.id).catch(() => null);
-      if (live && next) setCvImport(next);
-    }, 1200);
-    return () => {
-      live = false;
-      window.clearTimeout(timer);
-    };
-  }, [cvImport]);
-
-  // Once it's read, offer what it found, without undoing anything typed.
-  const appliedFor = useRef<string | null>(null);
-  useEffect(() => {
-    if (!cvImport?.draft || cvImport.status === 'processing') return;
-    if (cvImport.status === 'failed' || appliedFor.current === cvImport.id)
-      return;
-    appliedFor.current = cvImport.id;
-    if (!rolesTouched.current) setRoles(suggestRoles(cvImport.draft));
-    setLocation(
-      (current) => current || detected(cvImport.draft?.profile.location),
-    );
-  }, [cvImport]);
+  const cvStarted = useRef(false);
 
   const draft = cvImport?.draft ?? null;
   const suggested = useMemo(() => suggestRoles(draft), [draft]);
@@ -169,9 +139,9 @@ export function Onboarding({
     setBusy(true);
     setError('');
     try {
-      // A CV still being read keeps going; the app saves it when it's done.
-      if (cvImport?.status === 'processing') rememberPendingCv(cvImport.id);
-      else if (cvImport) await applyCvImport(cvImport);
+      // A CV read earlier (from Profile) is saved now.
+      if (cvImport && cvImport.status !== 'processing')
+        await applyCvImport(cvImport);
 
       const existing = new Set(
         (await listTargets()).map((target) => target.roleTitle.toLowerCase()),
@@ -198,6 +168,14 @@ export function Onboarding({
         // Acknowledged immediately; the search continues in the background
         // and Jobs → Discover shows its progress.
         await executeDiscoveryRun(run.id);
+      }
+
+      // The CV is read after the search has started, so job listings get local
+      // AI first; the app saves the result to the profile when it's done.
+      if (cvFile && !cvStarted.current) {
+        const started = await startCvImport(cvFile.id).catch(() => null);
+        cvStarted.current = true;
+        if (started) rememberPendingCv(started.id);
       }
 
       await completeOnboarding();
@@ -247,9 +225,8 @@ export function Onboarding({
         'upload',
         'center',
         <UploadStep
-          onStarted={(item) => {
-            setCvImport(item);
-            rolesTouched.current = false;
+          onChosen={(file) => {
+            setCvFile(file);
             setStep('roles');
           }}
           onSkip={withoutCv}
@@ -278,10 +255,7 @@ export function Onboarding({
           <RolesStep
             suggested={suggested}
             roles={roles}
-            onChange={(next) => {
-              rolesTouched.current = true;
-              setRoles(next);
-            }}
+            onChange={setRoles}
             onNext={() => setStep('preferences')}
           />
         </>,

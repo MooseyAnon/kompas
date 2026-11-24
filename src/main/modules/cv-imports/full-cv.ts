@@ -12,8 +12,11 @@ import type { GenerationEntry } from '../inference/inference.service';
 import type { CvInferenceClient } from './model';
 
 export const FULL_CV_VERSION = 'cv-extract-four-pass-v3';
-/** Read in the background while onboarding carries on, so slower Macs get time. */
-export const CV_PARSE_TIMEOUT_MS = 480_000;
+/**
+ * The CV waits behind job descriptions and is read in the background, so it
+ * gets a long window (queue time included) before it gives up.
+ */
+export const CV_PARSE_TIMEOUT_MS = 45 * 60_000;
 
 // ---------------------------------------------------------------------------
 // JSON schema sent to the model (structured-output contract)
@@ -470,7 +473,8 @@ async function runPass<P extends ExtractionPass>(
 
   const request: GenerationEntry = {
     callerModule: 'cvImports',
-    execution: { priority: 'normal', signal, retry: { maxRetries: 0 } },
+    // After job descriptions: the search comes first, the CV fills in matches.
+    execution: { priority: 'background', signal, retry: { maxRetries: 0 } },
     providerId: context.providerId,
     modelId: context.modelId,
     messages: passMessages(pass, context.text),

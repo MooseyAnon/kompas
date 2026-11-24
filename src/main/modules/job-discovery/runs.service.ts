@@ -45,7 +45,8 @@ export interface ConfirmedSkillReader {
   getProfile(): { location: string | null };
 }
 
-type DiscoveryWeb = Pick<WebService, 'search' | 'readPage'>;
+type DiscoveryWeb = Pick<WebService, 'search' | 'readPage'> &
+  Partial<Pick<WebService, 'readFeed'>>;
 
 type TrackingApplications = Pick<
   ApplicationsService,
@@ -136,6 +137,8 @@ const MAX_REPORTED_DIAGNOSTICS = 20;
 const CHALLENGE_TITLE = /captcha|verify you are human|unusual traffic/i;
 
 const HTTP_FORBIDDEN = 403;
+/** A screen's focus counts for this long after it last reported. */
+const FOCUS_TTL_MS = 5 * 60_000;
 
 const HTTP_TOO_MANY_REQUESTS = 429;
 
@@ -1076,6 +1079,29 @@ export class DiscoveryRunsService {
     this.workflowProgress.delete(id);
   }
 
+  /** Opportunities on screen and when they were reported. */
+  private focused = new Set<string>();
+  private focusedAt = 0;
+
+  /** The screen reports the roles it shows; their listings are read first. */
+  focus(opportunityIds: readonly string[]): void {
+    this.focused = new Set(opportunityIds);
+    this.focusedAt = this.clock().getTime();
+  }
+
+  /** Next candidate: the first on screen (if reported recently), else oldest. */
+  private takeNext(queue: string[]): string {
+    const fresh = this.clock().getTime() - this.focusedAt < FOCUS_TTL_MS;
+    if (fresh && this.focused.size) {
+      const index = queue.findIndex((sourceId) => {
+        const opportunity = this.repo.opportunityOfSource(sourceId);
+        return opportunity !== null && this.focused.has(opportunity);
+      });
+      if (index > 0) return queue.splice(index, 1)[0]!;
+    }
+    return queue.shift()!;
+  }
+
   private async runWorkflow(
     run: DiscoveryRun,
     deadline: number,
@@ -1095,8 +1121,17 @@ export class DiscoveryRunsService {
       candidateFailures: 0,
     };
 
-    // Candidates are processed strictly one at a time, in admission order.
-    let pending = Promise.resolve();
+    // Candidates are processed one at a time. Roles on screen (focus) go
+    // first; otherwise in admission order.
+    const queue: string[] = [];
+    let draining: Promise<void> | null = null;
+    const drain = async () => {
+      while (queue.length) {
+        const next = this.takeNext(queue);
+        await this.advanceCandidate(context, next);
+      }
+      draining = null;
+    };
 
     try {
       const collected = await this.collect(
@@ -1105,13 +1140,12 @@ export class DiscoveryRunsService {
           controller,
           web,
           onAdmitted: (candidate) => {
-            pending = pending.then(() =>
-              this.advanceCandidate(context, candidate.sourceId),
-            );
+            queue.push(candidate.sourceId);
+            draining ??= drain();
           },
         },
       );
-      await pending;
+      while (draining) await draining;
 
       this.finishWorkflowRun(context, collected);
     } finally {
@@ -1260,6 +1294,10 @@ export class DiscoveryRunsService {
           ? withPermit(() => web.search(query, options))
           : web.search(query, options),
       readPage: (url, options) => withPermit(() => web.readPage(url, options)),
+      // Small public JSON feeds; no browser, so no permit needed.
+      ...(web.readFeed
+        ? { readFeed: web.readFeed.bind(web) as WebService['readFeed'] }
+        : {}),
     };
   }
 

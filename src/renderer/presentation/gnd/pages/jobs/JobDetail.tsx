@@ -4,6 +4,7 @@ import {
   applyReviewOpportunity,
   decideReviewOpportunity,
   getApplication,
+  focusDiscovery,
   getReviewOpportunity,
   previewReviewApply,
   recordApplicationStage,
@@ -74,6 +75,11 @@ export function JobDetail({
   // The stage of the tracked application; 'saved' means opened, not sent.
   const [stage, setStage] = useState<StageKind | null>(null);
   const [asking, setAsking] = useState(false);
+
+  // An open role is read before anything else in the queue.
+  useEffect(() => {
+    void focusDiscovery([opportunityId]).catch(() => undefined);
+  }, [opportunityId]);
 
   useEffect(() => {
     void getReviewOpportunity(opportunityId)

@@ -633,6 +633,14 @@ export class DiscoveryRunsRepository {
     this.writeStats(runId, stats);
   }
 
+  /** The opportunity a run's candidate source belongs to. */
+  opportunityOfSource(sourceId: string): string | null {
+    const row = this.db
+      .prepare('SELECT opportunity_id FROM job_opportunity_sources WHERE id=?')
+      .get(sourceId) as { opportunity_id: string } | undefined;
+    return row?.opportunity_id ?? null;
+  }
+
   beginResolutionSearch(
     runId: string,
     sourceId: string,

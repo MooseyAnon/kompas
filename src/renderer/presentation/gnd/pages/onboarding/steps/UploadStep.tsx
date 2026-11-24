@@ -1,11 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Sparkles, Trash2, Upload } from 'lucide-react';
-import {
-  importDocument,
-  removeDocument,
-  startCvImport,
-} from '../../../../../api';
-import type { CvImport, Document } from '../../../../../../shared/contracts';
+import { importDocument, removeDocument } from '../../../../../api';
+import type { Document } from '../../../../../../shared/contracts';
 import { failureNotice } from '../../../../../app/Notifications';
 import { Button } from '../../../../components/Button';
 import { CvIllustration } from '../../applications/ProfileSetup';
@@ -20,14 +16,13 @@ export function fileSize(bytes: number): string {
 
 /**
  * Upload a CV, or answer a few questions instead. A chosen file shows as a
- * card you can remove. Continuing starts reading the CV in the background
- * while the rest of onboarding carries on.
+ * card you can remove. The CV is read later, after the job search starts.
  */
 export function UploadStep({
-  onStarted,
+  onChosen,
   onSkip,
 }: {
-  onStarted: (cvImport: CvImport) => void;
+  onChosen: (cv: Document) => void;
   onSkip: () => void;
 }) {
   const [file, setFile] = useState<Document | null>(null);
@@ -111,19 +106,8 @@ export function UploadStep({
     await removeDocument(removed.id).catch(() => undefined);
   }
 
-  async function carryOn() {
-    if (!file) return;
-    setBusy(true);
-    setError('');
-    try {
-      onStarted(await startCvImport(file.id));
-    } catch (e) {
-      setError(
-        failureNotice(e, 'Couldn’t start reading your CV. Please try again.')
-          .message,
-      );
-      setBusy(false);
-    }
+  function carryOn() {
+    if (file) onChosen(file);
   }
 
   return (
@@ -198,7 +182,7 @@ export function UploadStep({
             size="hero"
             disabled={busy}
             data-testid="gnd-upload-continue"
-            onClick={() => void carryOn()}
+            onClick={carryOn}
           >
             Continue
           </Button>

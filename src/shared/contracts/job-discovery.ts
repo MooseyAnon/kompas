@@ -278,6 +278,12 @@ export const discoveryRunStartInput = z.strictObject({
 
 export const discoveryRunIdInput = z.strictObject({ id: z.uuid() });
 
+/** Roles on screen right now; their listings are read first. */
+export const discoveryFocusInput = z.strictObject({
+  opportunityIds: z.array(z.uuid()).max(50),
+});
+export const discoveryFocusOutput = z.strictObject({ ok: z.literal(true) });
+
 export const discoveryRunListInput = savedSearchListInput;
 
 export const discoveryRunOutput = z.strictObject({ item: discoveryRunSchema });

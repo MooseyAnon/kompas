@@ -5,6 +5,7 @@ import {
   type CvDraft,
   type CvDiagnostics,
   type JsonSchemaObject,
+  type ModelDetails,
 } from '../../../shared/contracts';
 import type { ExtractedDocument } from '../documents/extraction';
 import type { GenerationEntry } from '../inference/inference.service';
@@ -267,6 +268,8 @@ interface PassContext {
   text: string;
   signal: AbortSignal;
   deadlineAt: number;
+  /** Context window to request; without it Ollama uses a small default that cuts the CV or the answer off. */
+  contextTokens?: number;
 }
 
 interface LocalModel {
@@ -296,12 +299,25 @@ const MAX_EXPERIENCES = 40;
 const normalized = (text: string) =>
   text.replace(/\s+/g, ' ').trim().toLocaleLowerCase();
 
+/**
+ * Looser form for matching quotes: PDFs often split ligatures ("fi nancial")
+ * and use odd apostrophes ("Dojo ʼ s"), which a model quotes cleanly.
+ */
+const loose = (text: string) =>
+  text
+    .toLocaleLowerCase()
+    .replace(/[\u2018\u2019\u02bc\u02bb`´]/g, "'")
+    .replace(/[\u201c\u201d]/g, '"')
+    .replace(/[\u2010-\u2015]/g, '-')
+    .replace(/\s+/g, '');
+
 /** Inference evidence must be a literal source quote, optionally wrapped in quotation marks. */
 function matchesInferenceEvidence(evidence: string, source: string): boolean {
+  const looseSource = loose(source);
   const matches = (value: string) =>
     value.length > 0 &&
     !/^\[(?:page \d+|paragraph \d+|line|paragraph|heading)\]$/.test(value) &&
-    source.includes(value);
+    (source.includes(value) || looseSource.includes(loose(value)));
 
   if (matches(normalized(evidence))) return true;
 
@@ -386,6 +402,22 @@ function sourceText(
   return text;
 }
 
+/** Largest window the model allows (or is configured for). */
+function contextWindow(details: ModelDetails | null): number | null {
+  if (!details) return null;
+  const max = details.maxContextTokens;
+  const configured = details.configuredContextTokens;
+  if (details.supportsContextOverride) return max ?? configured ?? null;
+  return configured ?? null;
+}
+
+/** Room for the CV (about 3 characters a token), instructions and the answer. */
+function requestWindow(text: string, window: number | null): number {
+  const needed = Math.ceil(text.length / 3) + 1_500 + 3_000;
+  const rounded = Math.ceil(needed / 1024) * 1024;
+  return Math.min(Math.max(rounded, 8_192), window ?? 16_384);
+}
+
 /** Only an installed local model matching the configured provider and model may read a CV. */
 async function resolveLocalModel(
   client: CvInferenceClient,
@@ -444,7 +476,13 @@ async function runPass<P extends ExtractionPass>(
     responseFormat: { type: 'json_schema', schema: pass.schema },
     thinking: false,
     toolNames: [],
-    limits: { maxOutputTokens: 3_000, timeoutMs: remaining },
+    limits: {
+      maxOutputTokens: 3_000,
+      timeoutMs: remaining,
+      ...(context.contextTokens
+        ? { contextTokens: context.contextTokens }
+        : {}),
+    },
   };
 
   let result;
@@ -483,10 +521,12 @@ function validatePersonal(
   )
     throw new CvModelError('INVALID_RESPONSE');
 
+  // A suggestion whose quote can't be found is dropped, not the whole CV.
   const source = normalized(text);
-  for (const item of inferences)
-    if (!matchesInferenceEvidence(item.evidence, source))
-      throw new CvModelError('INVALID_EVIDENCE');
+  const grounded = inferences.filter((item) =>
+    matchesInferenceEvidence(item.evidence, source),
+  );
+  inferences.splice(0, inferences.length, ...grounded);
 }
 
 /**
@@ -672,7 +712,11 @@ export async function interpretFullCv(
   if (!inference) throw new CvModelError('MODEL_UNAVAILABLE');
 
   const model = await resolveLocalModel(inference);
-  const text = sourceText(extracted, model.contextLength);
+  const details = await inference
+    .getModelDetails?.(model.providerId, model.modelId)
+    .catch(() => null);
+  const window = contextWindow(details ?? null);
+  const text = sourceText(extracted, window ?? model.contextLength);
   const context: PassContext = {
     client: inference,
     providerId: model.providerId,
@@ -680,6 +724,9 @@ export async function interpretFullCv(
     text,
     signal,
     deadlineAt,
+    contextTokens: details?.supportsContextOverride
+      ? requestWindow(text, window)
+      : undefined,
   };
 
   const personal = await runPass(context, PASSES.personal);

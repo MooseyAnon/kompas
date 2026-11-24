@@ -106,7 +106,7 @@ describe('GND onboarding', () => {
     expect(container.textContent).toContain('ollama pull');
     await click('Done');
     expect(container.textContent).toContain(
-      'It looks like you haven’t installed Ollama yet',
+      'The Ollama program isn’t installed yet',
     );
 
     await click('Continue without local AI');
@@ -213,9 +213,7 @@ describe('GND onboarding', () => {
     await act(async () => root.render(<Onboarding onComplete={vi.fn()} />));
     await click('Begin');
     await click('Done');
-    expect(container.textContent).toContain(
-      'Ollama is installed, but the model hasn’t downloaded yet',
-    );
+    expect(container.textContent).toContain('isn’t downloaded yet');
     expect(container.textContent).toContain('07728990467');
     api.listInferenceModels.mockResolvedValue([
       { id: 'qwen3.5:9b', installed: true },
@@ -228,19 +226,10 @@ describe('GND onboarding', () => {
     expect(step()).toBe('onboarding-step-upload');
   });
 
-  it('plays the intro music, and the mute button stops it and is remembered', async () => {
+  it('plays the intro music, with no volume button on screen', async () => {
     await act(async () => root.render(<Onboarding onComplete={vi.fn()} />));
     expect(play).toHaveBeenCalled();
-    const mute = container.querySelector<HTMLButtonElement>('.gnd-sound')!;
-    expect(mute.getAttribute('aria-label')).toBe('Mute music');
-    await act(async () => mute.click());
-    expect(mute.getAttribute('aria-label')).toBe('Play music');
-    expect(window.localStorage.getItem('gnd.introMusic.muted')).toBe('1');
-    act(() => root.unmount());
-    root = createRoot(container);
-    play.mockClear();
-    await act(async () => root.render(<Onboarding onComplete={vi.fn()} />));
-    expect(play).not.toHaveBeenCalled();
+    expect(container.querySelector('.gnd-sound')).toBeNull();
   });
 
   it('opened from Profile, it has no music and Close saves nothing', async () => {

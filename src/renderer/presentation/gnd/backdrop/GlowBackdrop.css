@@ -167,3 +167,25 @@
     transform: translate3d(8vw, 10vh, 0) scale(0.96);
   }
 }
+
+/* Reduce Motion is on: the app-wide rule freezes animations. The colour
+   fields still breathe, slowly and on the spot, so the page doesn't feel
+   dead; nothing travels across the window. */
+@media (prefers-reduced-motion: reduce) {
+  .glow-backdrop .glow {
+    animation: glow-breathe 18s ease-in-out infinite alternate !important;
+  }
+  .glow-backdrop .glow:nth-child(even) {
+    animation-delay: -9s !important;
+  }
+}
+@keyframes glow-breathe {
+  from {
+    transform: scale(0.94);
+    opacity: 0.85;
+  }
+  to {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}

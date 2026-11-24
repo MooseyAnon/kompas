@@ -26,7 +26,7 @@ import {
 } from './extraction';
 
 /** Opens a native file picker; resolves to an absolute path or null (cancelled). */
-export type FilePicker = () => Promise<string | null>;
+export type FilePicker = (source?: 'picker' | 'drop') => Promise<string | null>;
 
 /** Opens a managed file by absolute path; resolves to '' on success or an error string. */
 export type PathOpener = (absolutePath: string) => Promise<string>;
@@ -87,10 +87,13 @@ export class DocumentsService {
   }
 
   /** Pick, validate, store and record a new document; cancellation is not an error. */
-  async import(category: DocumentCategory): Promise<DocumentsImportOutput> {
+  async import(
+    category: DocumentCategory,
+    from: 'picker' | 'drop' = 'picker',
+  ): Promise<DocumentsImportOutput> {
     const startedAt = new Date().toISOString();
 
-    const source = await this.pickFile();
+    const source = await this.pickFile(from);
     if (!source) {
       this.record('import', 'cancelled', startedAt, { category });
       return { cancelled: true };

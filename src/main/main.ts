@@ -69,6 +69,17 @@ if (started) {
 }
 
 const REQUEST_CHANNEL = 'career:request';
+const DROP_CHANNEL = 'career:dropped';
+/** A dropped file can be imported for a short while after the drop. */
+const DROP_TTL_MS = 15_000;
+let lastDrop: { path: string; at: number } | null = null;
+
+function takeDroppedFile(): string | null {
+  const drop = lastDrop;
+  lastDrop = null;
+  if (!drop || Date.now() - drop.at > DROP_TTL_MS) return null;
+  return fs.existsSync(drop.path) ? drop.path : null;
+}
 const RESET_DRAIN_TIMEOUT_MS = 15_000;
 const RESET_DRAIN_POLL_INTERVAL_MS = 100;
 const RESET_RESTART_DELAY_MS = 150;
@@ -342,6 +353,16 @@ function fadeIn(win: BrowserWindow): void {
 }
 
 function registerIpc(): void {
+  ipcMain.on(DROP_CHANNEL, (event, droppedPath: unknown) => {
+    if (
+      event.sender.id !== mainWindow?.webContents.id ||
+      typeof droppedPath !== 'string' ||
+      !path.isAbsolute(droppedPath)
+    )
+      return;
+    lastDrop = { path: droppedPath, at: Date.now() };
+  });
+
   ipcMain.handle(REQUEST_CHANNEL, async (event, raw) => {
     const expectedId = mainWindow?.webContents.id;
     const expectedMainFrameId =
@@ -492,7 +513,8 @@ function createDocumentsPlatform(): DocumentsPlatform {
   }
 
   return {
-    async pickFile(): Promise<string | null> {
+    async pickFile(source): Promise<string | null> {
+      if (source === 'drop') return takeDroppedFile();
       if (!mainWindow) {
         return null;
       }

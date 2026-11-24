@@ -500,6 +500,47 @@ describe('LLM-first CV projection', () => {
       ).toBe(true);
     }
   });
+  it('matches quotes across split ligatures and odd apostrophes', async () => {
+    const source: ExtractedDocument = {
+      ...extracted,
+      blocks: [
+        {
+          kind: 'paragraph',
+          paragraph: 1,
+          text: 'fi nancial crime checks for Dojo ʼ s merchants',
+        },
+        ...extracted.blocks,
+      ],
+    };
+    const evidence = "financial crime checks for Dojo's merchants";
+    const { draft } = await interpretFullCv(
+      source,
+      client((pass: string) =>
+        pass === 'personal'
+          ? {
+              ...section(pass),
+              inferences: [{ ...output.inferences[0], evidence }],
+            }
+          : section(pass),
+      ),
+      new AbortController().signal,
+    );
+    expect(draft.details?.inferences[0].evidence).toBe(evidence);
+  });
+  it('asks the model for a context window big enough for the CV', async () => {
+    const inference = {
+      ...client(),
+      getModelDetails: vi.fn(async () => ({
+        maxContextTokens: 32_768,
+        configuredContextTokens: null,
+        supportsContextOverride: true,
+      })),
+    };
+    await interpretFullCv(extracted, inference, new AbortController().signal);
+    const request = inference.generate.mock.calls[0][0];
+    expect(request.limits?.contextTokens).toBeGreaterThanOrEqual(8_192);
+    expect(request.limits?.contextTokens).toBeLessThanOrEqual(32_768);
+  });
   it.each([
     ['"[paragraph 1] Mechanical & Electrical Engineering Student"', true],
     ['[paragraph 1] Mechanical & Electrical Engineering Student', true],
@@ -539,31 +580,32 @@ describe('LLM-first CV projection', () => {
         expect(draft.details?.inferences[0].evidence).toBe(evidence);
         expect(inference.generate).toHaveBeenCalledTimes(4);
       } else {
-        await expect(run).rejects.toMatchObject({ code: 'INVALID_EVIDENCE' });
-        expect(inference.generate).toHaveBeenCalledOnce();
+        // An ungrounded suggestion is dropped; the rest of the CV still reads.
+        const { draft } = await run;
+        expect(draft.details?.inferences ?? []).toHaveLength(0);
+        expect(inference.generate).toHaveBeenCalledTimes(4);
       }
     },
   );
-  it('fails visibly on unavailable model, evidence mismatch, unsupported values, cancelled and oversize', async () => {
+  it('fails visibly on unavailable model, unsupported values, cancelled and oversize; drops unquoted suggestions', async () => {
     await expect(
       interpretFullCv(extracted, undefined, new AbortController().signal),
     ).rejects.toMatchObject({ code: 'MODEL_UNAVAILABLE' });
-    await expect(
-      interpretFullCv(
-        extracted,
-        client((pass: string) =>
-          pass === 'personal'
-            ? {
-                ...section(pass),
-                inferences: [
-                  { ...output.inferences[0], evidence: 'invented quote' },
-                ],
-              }
-            : section(pass),
-        ),
-        new AbortController().signal,
+    const dropped = await interpretFullCv(
+      extracted,
+      client((pass: string) =>
+        pass === 'personal'
+          ? {
+              ...section(pass),
+              inferences: [
+                { ...output.inferences[0], evidence: 'invented quote' },
+              ],
+            }
+          : section(pass),
       ),
-    ).rejects.toMatchObject({ code: 'INVALID_EVIDENCE' });
+      new AbortController().signal,
+    );
+    expect(dropped.draft.details?.inferences ?? []).toHaveLength(0);
     await expect(
       interpretFullCv(
         extracted,
@@ -717,9 +759,7 @@ describe('LLM-first CV projection', () => {
         pass === 'personal'
           ? {
               ...section(pass),
-              inferences: [
-                { ...output.inferences[0], evidence: 'unsupported quote' },
-              ],
+              email: 'not an email',
             }
           : section(pass),
       );
@@ -735,7 +775,7 @@ describe('LLM-first CV projection', () => {
         }
         throw new Error('CV operation did not settle');
       };
-      expect((await settled()).diagnostics.errorCode).toBe('INVALID_EVIDENCE');
+      expect((await settled()).diagnostics.errorCode).toBe('INVALID_RESPONSE');
       expect(legacySpy).not.toHaveBeenCalled();
       const legacy = parseCv(extracted).draft;
       legacySpy.mockClear();

@@ -24,7 +24,7 @@ export function createDocumentsModule(
       import: defineCommand({
         input: documentsImportInputSchema,
         output: documentsImportOutputSchema,
-        handle: (input) => service.import(input.category),
+        handle: (input) => service.import(input.category, input.source),
       }),
       list: defineCommand({
         input: documentsListInputSchema,

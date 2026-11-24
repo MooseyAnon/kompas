@@ -49,7 +49,11 @@ export type Document = z.infer<typeof documentSchema>;
 // --- documents.import -------------------------------------------------------
 
 export const documentsImportInputSchema = z
-  .object({ category: documentCategorySchema })
+  .object({
+    category: documentCategorySchema,
+    /** `drop` imports the file just dropped on the window instead of opening the picker. */
+    source: z.enum(['picker', 'drop']).optional(),
+  })
   .strict();
 export type DocumentsImportInput = z.infer<typeof documentsImportInputSchema>;
 

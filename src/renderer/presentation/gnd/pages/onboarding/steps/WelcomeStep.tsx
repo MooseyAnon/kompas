@@ -12,11 +12,7 @@ export function WelcomeStep({
 }) {
   return (
     <div className="gnd-stack gnd-welcome">
-      <Buddy
-        className="gnd-welcome-buddy"
-        size={120}
-        say="Hi! I’ll help you find what’s next."
-      />
+      <Buddy className="gnd-welcome-buddy" size={120} entrance />
       <StepHeading
         hero
         title={

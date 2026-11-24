@@ -4,7 +4,23 @@
   flex-direction: column;
   align-items: center;
   width: var(--buddy-size, 120px);
-  pointer-events: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.gnd-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+/* Eyes follow the pointer; the move is eased so it feels soft. */
+.gnd-buddy-look {
+  transition: transform 260ms cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+.gnd-buddy.is-following .gnd-buddy-eyes {
+  animation: none;
 }
 .gnd-buddy-art {
   display: block;
@@ -209,34 +225,95 @@
   }
 }
 
-/* What it says, in a soft bubble above it. */
-.gnd-buddy-say {
-  position: absolute;
-  bottom: calc(100% + 4px);
-  left: 50%;
-  width: max-content;
-  max-width: 240px;
-  margin: 0;
-  padding: 10px 14px;
-  border-radius: 16px 16px 16px 4px;
-  background: #ffffffe6;
-  box-shadow: 0 8px 24px #24251f14;
-  color: var(--text-primary);
-  font-size: 14px;
-  line-height: 1.4;
-  text-align: left;
-  animation: buddy-say-in 480ms cubic-bezier(0.3, 1.3, 0.5, 1) both;
+/* Entrance: drops in from above and bounces as it lands. */
+.gnd-buddy.is-entering .gnd-buddy-art {
+  animation: buddy-drop 1100ms cubic-bezier(0.3, 0, 0.3, 1) both;
 }
-@keyframes buddy-say-in {
-  from {
+.gnd-buddy.is-entering .gnd-buddy-shadow {
+  animation:
+    buddy-drop-shadow 1100ms ease-out both,
+    buddy-shadow 4.6s ease-in-out 1100ms infinite;
+}
+@keyframes buddy-drop {
+  0% {
+    transform: translateY(-140%) scale(0.9, 1.08);
     opacity: 0;
-    transform: translate(-30%, 8px) scale(0.9);
   }
-  to {
+  45% {
+    transform: translateY(0) scale(1, 1);
     opacity: 1;
-    transform: translate(-30%, 0) scale(1);
+  }
+  55% {
+    transform: translateY(0) scale(1.12, 0.86);
+  }
+  70% {
+    transform: translateY(-12%) scale(0.96, 1.04);
+  }
+  84% {
+    transform: translateY(0) scale(1.04, 0.96);
+  }
+  92% {
+    transform: translateY(-3%) scale(1, 1);
+  }
+  100% {
+    transform: translateY(0);
   }
 }
-.gnd-buddy-say {
-  transform: translate(-30%, 0);
+@keyframes buddy-drop-shadow {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  45% {
+    opacity: 0.36;
+    transform: scale(1.1);
+  }
+}
+
+/* Clicked: moon-shaped happy eyes, a wiggle, and the glow spreads out. */
+.gnd-buddy.is-tickled .gnd-buddy-eye-shapes {
+  opacity: 0;
+}
+.gnd-buddy.is-tickled .gnd-buddy-smile-eyes {
+  opacity: 1;
+}
+.gnd-buddy.is-tickled .gnd-buddy-squish {
+  animation: buddy-wiggle 700ms ease-in-out;
+}
+.gnd-buddy-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 500ms cubic-bezier(0.3, 1.4, 0.5, 1),
+    opacity 500ms ease;
+}
+.gnd-buddy.is-tickled .gnd-buddy-halo {
+  transform: scale(1.32);
+  opacity: 0.9;
+}
+@keyframes buddy-wiggle {
+  0%,
+  100% {
+    transform: rotate(0) scale(1);
+  }
+  15% {
+    transform: rotate(-9deg) scale(1.04, 0.96);
+  }
+  35% {
+    transform: rotate(8deg) scale(0.97, 1.03);
+  }
+  55% {
+    transform: rotate(-6deg);
+  }
+  75% {
+    transform: rotate(4deg);
+  }
+}
+/* On the welcome screen it lands just after the window fades in. */
+.gnd-welcome-buddy.is-entering .gnd-buddy-art,
+.gnd-welcome-buddy.is-entering .gnd-buddy-shadow {
+  animation-delay: 700ms;
+}
+.gnd-welcome-buddy.is-entering .gnd-buddy-shadow {
+  animation-delay: 700ms, 1800ms;
 }

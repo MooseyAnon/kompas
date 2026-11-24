@@ -823,8 +823,12 @@ function documents<T>(action: string, payload: unknown): Promise<T> {
 
 export async function importDocument(
   category: DocumentCategory,
+  source: 'picker' | 'drop' = 'picker',
 ): Promise<DocumentsImportOutput> {
-  return documents<DocumentsImportOutput>('import', { category });
+  return documents<DocumentsImportOutput>(
+    'import',
+    source === 'drop' ? { category, source } : { category },
+  );
 }
 
 export async function listDocuments(): Promise<Document[]> {

@@ -33,8 +33,28 @@ const PLATFORMS: Record<
 };
 
 const HELP = 'If you get stuck, message 07728990467.';
-export const NO_OLLAMA = `It looks like you haven’t installed Ollama yet. Please try again. ${HELP}`;
+export const NO_OLLAMA = `The Ollama program isn’t installed yet. Run the first command, then press Done. ${HELP}`;
+export const NOT_RUNNING = `The Ollama program is installed but isn’t open. Open the Ollama app, then press Done. ${HELP}`;
 export const NO_MODEL = `Ollama is installed, but the model hasn’t downloaded yet. Run the second command and wait for it to finish. ${HELP}`;
+
+/** Which part is missing: the Ollama program, or the model it runs. */
+export function setupMessage(
+  health: {
+    reachable: boolean;
+    state?: string;
+    runtimeVersion?: string | null;
+  } | null,
+  modelCount: number,
+  model: string,
+): string | null {
+  if (!health?.reachable)
+    return health?.state === 'not_running' ? NOT_RUNNING : NO_OLLAMA;
+  if (modelCount > 0) return null;
+  const version = health.runtimeVersion
+    ? ` (you have Ollama ${health.runtimeVersion})`
+    : '';
+  return `The Ollama program is installed${version}, but the model ${model} isn’t downloaded yet. Run the second command and wait for it to finish. If it says it needs a newer version of Ollama, update Ollama from ollama.com, then run it again. ${HELP}`;
+}
 
 /** The largest suggested model that should fit this machine's memory. */
 export function pickModel(totalBytes: number | null): string {
@@ -78,11 +98,11 @@ export function OllamaSetup({
     setMessage('');
     try {
       const health = await getProviderHealth(OLLAMA).catch(() => null);
-      if (!health?.reachable) return setMessage(NO_OLLAMA);
-      const installed = (await listInferenceModels(OLLAMA)).filter(
-        (item) => item.installed,
-      );
-      if (!installed.length) return setMessage(NO_MODEL);
+      const installed = health?.reachable
+        ? (await listInferenceModels(OLLAMA)).filter((item) => item.installed)
+        : [];
+      const problem = setupMessage(health, installed.length, model);
+      if (problem) return setMessage(problem);
       const chosen =
         installed.find((item) => item.id === model) ??
         installed.find((item) => item.id.startsWith(model.split(':')[0])) ??

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type {
+  ModelDetails,
   CvDraft,
   CvDiagnostics,
   GenerationRequestInput,
@@ -12,6 +13,11 @@ import type { GenerationEntry } from '../inference/inference.service';
 export interface CvInferenceClient {
   getSettingsSnapshot(): Promise<InferenceSettingsGetOutput>;
   generate(request: GenerationEntry): Promise<GenerationResult>;
+  /** The model's context window, so a full CV gets room to be read. */
+  getModelDetails?(
+    providerId: string,
+    modelId: string,
+  ): Promise<ModelDetails | null>;
 }
 
 const responseSchema = z

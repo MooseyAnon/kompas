@@ -729,3 +729,107 @@
 .gnd-profile-buddy {
   margin: -12px 0 2px -10px;
 }
+
+/* Drop a CV anywhere on the upload step */
+.gnd-dropzone {
+  transition:
+    border-color var(--motion-fast),
+    background var(--motion-fast),
+    transform var(--motion-fast);
+}
+.gnd-dropzone.is-dragging {
+  border-color: var(--accent);
+  background: #0026ff0d;
+  transform: scale(1.02);
+}
+.gnd-dropzone-hint {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.gnd-drop-overlay {
+  position: fixed;
+  inset: 12px;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  border: 2px dashed var(--accent);
+  border-radius: 24px;
+  background: #f5f3ebcc;
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+  animation: gnd-drop-in 160ms ease-out;
+}
+.gnd-drop-overlay span {
+  font-family: var(--font-family-display);
+  font-size: 28px;
+  color: var(--accent);
+}
+@keyframes gnd-drop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* The CV turns slowly in 3D while it's being read, and stops on a problem. */
+.gnd-cv-stage {
+  perspective: 1100px;
+}
+.gnd-cv-sheet {
+  transform-style: preserve-3d;
+  animation: gnd-cv-spin 4.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+.gnd-cv-sheet.is-paused {
+  animation: gnd-cv-settle 600ms ease-out forwards;
+}
+@keyframes gnd-cv-spin {
+  0% {
+    transform: rotateY(0deg) rotateX(4deg);
+  }
+  45% {
+    transform: rotateY(180deg) rotateX(-4deg) scale(0.96);
+  }
+  100% {
+    transform: rotateY(360deg) rotateX(4deg);
+  }
+}
+@keyframes gnd-cv-settle {
+  to {
+    transform: none;
+  }
+}
+
+/* No CV: use a LinkedIn profile saved as a PDF */
+.gnd-linkedin {
+  width: min(100%, 520px);
+  padding: 18px 22px;
+  border-radius: 16px;
+  background: #ffffffb3;
+  text-align: left;
+}
+.gnd-linkedin h2 {
+  margin: 0 0 6px;
+  font-family: var(--font-family-display);
+  font-weight: var(--weight-medium);
+  font-size: 18px;
+}
+.gnd-linkedin p {
+  margin: 0 0 10px;
+  color: var(--text-muted);
+}
+.gnd-linkedin ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+}
+.gnd-linkedin a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent);
+}
+.gnd-linkedin a svg {
+  width: 14px;
+  height: 14px;
+}

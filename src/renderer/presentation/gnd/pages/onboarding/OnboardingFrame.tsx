@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Volume2, VolumeX } from 'lucide-react';
 import { Wordmark } from '../../brand/Wordmark';
 import { useIntroMusic } from '../../audio/useIntroMusic';
 import { GlowBackdrop } from '../../backdrop/GlowBackdrop';
@@ -20,7 +19,7 @@ export function OnboardingFrame({
   music = false,
   children,
 }: {
-  /** Play the intro music (first run only), with a mute button. */
+  /** Play the intro music (first run only). */
   music?: boolean;
   stepKey: string;
   /** The current step's text is animating out before the next one. */
@@ -32,7 +31,8 @@ export function OnboardingFrame({
   children: ReactNode;
 }) {
   const content = useRef<HTMLDivElement>(null);
-  const sound = useIntroMusic(music);
+  // Music plays on first run; the mute button was removed for now.
+  useIntroMusic(music);
   // The first screen waits for the window and background to arrive.
   const [arriving, setArriving] = useState(true);
   useEffect(() => {
@@ -56,22 +56,6 @@ export function OnboardingFrame({
           <Wordmark />
         </span>
         <div className="gnd-onboarding-tools">
-          {music && (
-            <button
-              type="button"
-              className="gnd-sound"
-              aria-pressed={!sound.muted}
-              aria-label={sound.muted ? 'Play music' : 'Mute music'}
-              title={sound.muted ? 'Play music' : 'Mute music'}
-              onClick={sound.toggle}
-            >
-              {sound.muted ? (
-                <VolumeX aria-hidden="true" />
-              ) : (
-                <Volume2 aria-hidden="true" />
-              )}
-            </button>
-          )}
           {onSkip && (
             <button
               type="button"

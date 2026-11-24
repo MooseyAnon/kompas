@@ -28,7 +28,6 @@ import '../../../../pages/jobs/JobsPage.css';
 export type Tab = 'saved' | 'discover' | 'review' | 'applications';
 const tabs: readonly PillTab<Tab>[] = [
   { id: 'saved', label: 'Saved Searches', icon: BriefcaseBusiness },
-  { id: 'discover', label: 'Discover', icon: Search },
   { id: 'review', label: 'Review', icon: Bookmark },
   { id: 'applications', label: 'Applications', icon: BriefcaseBusiness },
 ];
@@ -50,7 +49,11 @@ export function JobsSearches({
   initialRunId?: string;
 }) {
   const c = useJobsController();
-  const [tab, setTab] = useState<Tab>(initialTab);
+  // Discover (the old run view) is gone in Kompas; run progress is shown by
+  // Finding roles on Jobs, so an old 'discover' link opens Saved Searches.
+  const [tab, setTab] = useState<Tab>(
+    initialTab === 'discover' ? 'saved' : initialTab,
+  );
   const [applicationId, setApplicationId] = useState<string | null>(null);
   useEffect(() => {
     if (initialRunId) c.openRun(initialRunId);
@@ -63,21 +66,7 @@ export function JobsSearches({
 
   function enterRun(id: string) {
     c.openRun(id);
-    setTab('discover');
   }
-  // A run ID is assigned only after a successful start (or an explicit open).
-  useEffect(() => {
-    if (c.runId) setTab('discover');
-  }, [c.runId]);
-  // Arriving from onboarding: open the run it just started (the newest).
-  const openedNewest = useRef(initialTab !== 'discover');
-  useEffect(() => {
-    if (openedNewest.current || c.runs.loading || c.runId) return;
-    const newest = c.runs.items[0];
-    if (!newest) return;
-    openedNewest.current = true;
-    c.openRun(newest.id);
-  }, [c.runs.loading, c.runs.items, c.runId]);
 
   return (
     <section

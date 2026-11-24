@@ -45,12 +45,7 @@ export function GndApp() {
           />
         )}
         {status === 'complete' && (
-          <GndShell
-            initialDestination={exit?.destination ?? 'home'}
-            initialJobsTab={
-              exit?.destination === 'jobs' ? 'discover' : undefined
-            }
-          />
+          <GndShell initialDestination={exit?.destination ?? 'home'} />
         )}
       </Notifications>
     </ErrorBoundary>

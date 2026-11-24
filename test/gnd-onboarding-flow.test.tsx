@@ -93,7 +93,7 @@ afterEach(() => {
 });
 
 describe('GND onboarding', () => {
-  it('without local AI: sets up roles and preferences, then saves the search, starts it and opens Jobs', async () => {
+  it('without local AI: sets up roles and preferences, then saves the search, starts it and opens Home', async () => {
     const onComplete = vi.fn();
     await act(async () => root.render(<Onboarding onComplete={onComplete} />));
     expect(step()).toBe('onboarding-step-welcome');
@@ -140,14 +140,8 @@ describe('GND onboarding', () => {
       select.value = 'remote';
       select.dispatchEvent(new Event('change', { bubbles: true }));
     });
+    // No "Your profile, taking shape" step: Find roles finishes setup.
     await click('Find roles');
-
-    expect(step()).toBe('onboarding-step-profile');
-    expect(container.textContent).toContain('Product Designer');
-    expect(container.textContent).toContain('London · Remote');
-    expect(api.createSavedSearch).not.toHaveBeenCalled();
-
-    await click('Looks right');
     expect(api.applyProfileImport).not.toHaveBeenCalled();
     expect(api.createTarget).toHaveBeenCalledWith({
       roleTitle: 'Product Designer',
@@ -163,7 +157,7 @@ describe('GND onboarding', () => {
     expect(api.startDiscoveryRun).toHaveBeenCalledWith('search-1');
     expect(api.executeDiscoveryRun).toHaveBeenCalledWith('run-1');
     expect(api.completeOnboarding).toHaveBeenCalledOnce();
-    expect(onComplete).toHaveBeenCalledWith({ destination: 'jobs' });
+    expect(onComplete).toHaveBeenCalledWith({ destination: 'home' });
   });
 
   it('retrying after a failure does not create a second saved search or run', async () => {
@@ -184,13 +178,12 @@ describe('GND onboarding', () => {
     );
     await click('That’s my direction');
     await click('Find roles');
-    await click('Looks right');
     expect(container.querySelector('[role="alert"]')).not.toBeNull();
 
-    await click('Looks right');
+    await click('Find roles');
     expect(api.createSavedSearch).toHaveBeenCalledOnce();
     expect(api.startDiscoveryRun).toHaveBeenCalledOnce();
-    expect(onComplete).toHaveBeenCalledWith({ destination: 'jobs' });
+    expect(onComplete).toHaveBeenCalledWith({ destination: 'home' });
   });
 
   it('skipping setup still asks for the role, and has no skip there', async () => {
@@ -259,7 +252,7 @@ describe('GND onboarding', () => {
     expect(container.textContent).toContain('Answer a few questions');
   });
 
-  it('reads the CV in the background and fills in roles when it finishes', async () => {
+  it('reads the CV quietly in the background and fills in roles when it finishes', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     api.getInferenceSettings.mockResolvedValue({
       resolvedModel: { installed: true, locality: 'local' },
@@ -299,15 +292,49 @@ describe('GND onboarding', () => {
     ).toContain('Cil_Poon_CV.pdf801 KB');
     await click('Continue');
     expect(step()).toBe('onboarding-step-roles');
-    expect(container.textContent).toContain(
-      'Reading your CV in the background',
-    );
+    // Reading happens quietly: no note on the role step.
+    expect(container.textContent).not.toContain('Reading your CV');
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1500);
     });
     await flush();
-    expect(container.textContent).toContain('Your CV is read');
     expect(container.textContent).toContain('Product Designer');
     vi.useRealTimers();
+  });
+
+  it('finishing while the CV is still being read goes home and keeps reading', async () => {
+    api.getInferenceSettings.mockResolvedValue({
+      resolvedModel: { installed: true, locality: 'local' },
+    });
+    api.importDocument.mockResolvedValue({
+      cancelled: false,
+      item: { id: 'doc-1', originalName: 'cv.pdf', sizeBytes: 1000 },
+    });
+    const processing = {
+      id: 'imp-2',
+      status: 'processing',
+      draft: null,
+      diagnostics: {},
+    };
+    api.startCvImport.mockResolvedValue(processing);
+    api.getCvImport.mockResolvedValue(processing);
+    const onComplete = vi.fn();
+    await act(async () => root.render(<Onboarding onComplete={onComplete} />));
+    await click('Begin');
+    await click('Choose a CV file');
+    await click('Continue');
+    const search =
+      container.querySelector<HTMLInputElement>('#gnd-role-search')!;
+    await act(async () => type(search, 'Designer'));
+    await act(async () =>
+      search.form!.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true }),
+      ),
+    );
+    await click('That’s my direction');
+    await click('Find roles');
+    expect(api.applyProfileImport).not.toHaveBeenCalled();
+    expect(window.localStorage.getItem('kompas.pendingCvImport')).toBe('imp-2');
+    expect(onComplete).toHaveBeenCalledWith({ destination: 'home' });
   });
 });

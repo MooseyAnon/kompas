@@ -206,3 +206,20 @@
     grid-template-columns: 1fr;
   }
 }
+
+.gnd-job-posting {
+  margin-bottom: 16px;
+}
+.gnd-job-posting-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.gnd-job-posting p {
+  margin: 0 0 8px;
+  white-space: pre-line;
+  line-height: 1.55;
+}

@@ -118,6 +118,7 @@ describe('job detail', () => {
       ...scored,
       coverage: null,
       extraction: null,
+      extractionStatus: 'missing',
       match: null,
     });
     await act(async () =>
@@ -126,7 +127,7 @@ describe('job detail', () => {
       ),
     );
     expect(text()).toContain('Not scored yet');
-    expect(text()).toContain('The listing hasn’t been read yet.');
+    expect(text()).toContain('Waiting for local AI to read this listing.');
     expect(text()).not.toContain('%');
   });
 

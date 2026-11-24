@@ -11,7 +11,11 @@ export function PreferencesStep({
   onLocation,
   onArrangement,
   onNext,
+  busy = false,
+  error = '',
 }: {
+  busy?: boolean;
+  error?: string;
   location: string;
   arrangement: WorkArrangement;
   onLocation: (value: string) => void;
@@ -67,7 +71,12 @@ export function PreferencesStep({
           </div>
         </div>
       </div>
-      <Button size="hero" type="submit">
+      {error && (
+        <p className="gnd-message" role="alert">
+          {error}
+        </p>
+      )}
+      <Button size="hero" type="submit" disabled={busy}>
         Find roles
       </Button>
     </form>

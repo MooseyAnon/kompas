@@ -1,3 +1,4 @@
+import { usePendingCvImport } from './pages/onboarding/pendingCv';
 import React, { useEffect, useRef, useState } from 'react';
 import { getProfile } from '../../api';
 import { type Destination } from './destinations';
@@ -23,6 +24,8 @@ export function GndShell({
   /** First tab Jobs opens on, e.g. Discover right after onboarding. */
   initialJobsTab?: 'discover' | 'saved' | 'review';
 }) {
+  // A CV still being read after onboarding is saved to the profile when done.
+  usePendingCvImport();
   const [destination, setDestination] =
     useState<Destination>(initialDestination);
   const [jobs, setJobs] = useState<JobsEntry | undefined>(

@@ -1,15 +1,12 @@
 import { motionReduced } from '../../../motion';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  applyProfileImport,
   completeOnboarding,
   createSavedSearch,
   createTarget,
   executeDiscoveryRun,
   getCvImport,
-  listConfirmedSkills,
   listTargets,
-  replaceConfirmedSkills,
   startDiscoveryRun,
 } from '../../../../api';
 import type {
@@ -21,13 +18,11 @@ import { OnboardingFrame } from './OnboardingFrame';
 import {
   detected,
   profileCard,
-  profileImportFrom,
   searchConfigFor,
-  skillsFrom,
   suggestRoles,
 } from './onboardingPlan';
-import { LearningStep, failureMessage } from './steps/LearningStep';
-import { ReadingNote } from './steps/ReadingNote';
+import { LearningStep } from './steps/LearningStep';
+import { applyCvImport, rememberPendingCv } from './pendingCv';
 import { LocalAiStep, localAiReady } from './steps/LocalAiStep';
 import { PreferencesStep } from './steps/PreferencesStep';
 import { ProfileStep } from './steps/ProfileStep';
@@ -131,7 +126,6 @@ export function Onboarding({
     );
   }, [cvImport]);
 
-  const reading = cvImport?.status === 'processing';
   const draft = cvImport?.draft ?? null;
   const suggested = useMemo(() => suggestRoles(draft), [draft]);
   const card = profileCard(draft, roles, location, arrangement);
@@ -175,15 +169,9 @@ export function Onboarding({
     setBusy(true);
     setError('');
     try {
-      if (cvImport?.draft && cvImport.status !== 'failed') {
-        const input = profileImportFrom(cvImport.id, cvImport.draft);
-        if (input) await applyProfileImport(input);
-        const skills = skillsFrom(cvImport.draft);
-        if (skills.length) {
-          const current = await listConfirmedSkills();
-          await replaceConfirmedSkills([...new Set([...current, ...skills])]);
-        }
-      }
+      // A CV still being read keeps going; the app saves it when it's done.
+      if (cvImport?.status === 'processing') rememberPendingCv(cvImport.id);
+      else if (cvImport) await applyCvImport(cvImport);
 
       const existing = new Set(
         (await listTargets()).map((target) => target.roleTitle.toLowerCase()),
@@ -213,7 +201,7 @@ export function Onboarding({
       }
 
       await completeOnboarding();
-      onComplete({ destination: 'jobs' });
+      onComplete({ destination: 'home' });
     } catch (e) {
       setError(
         failureNotice(e, 'Something went wrong setting up. Please try again.')
@@ -296,21 +284,6 @@ export function Onboarding({
             }}
             onNext={() => setStep('preferences')}
           />
-          <ReadingNote
-            cvImport={cvImport}
-            failure={
-              cvImport?.status === 'failed'
-                ? failureMessage({
-                    kind:
-                      cvImport.diagnostics.errorCode === 'MODEL_UNAVAILABLE'
-                        ? 'model'
-                        : 'file',
-                    code: cvImport.diagnostics.errorCode,
-                  })
-                : null
-            }
-            onRetry={() => setStep('upload')}
-          />
         </>,
       );
     case 'preferences':
@@ -323,22 +296,9 @@ export function Onboarding({
             arrangement={arrangement}
             onLocation={setLocation}
             onArrangement={setArrangement}
-            onNext={() => setStep(reading ? 'learning' : 'profile')}
-          />
-          <ReadingNote
-            cvImport={cvImport}
-            failure={
-              cvImport?.status === 'failed'
-                ? failureMessage({
-                    kind:
-                      cvImport.diagnostics.errorCode === 'MODEL_UNAVAILABLE'
-                        ? 'model'
-                        : 'file',
-                    code: cvImport.diagnostics.errorCode,
-                  })
-                : null
-            }
-            onRetry={() => setStep('upload')}
+            onNext={() => void confirm()}
+            busy={busy}
+            error={error}
           />
         </>,
       );

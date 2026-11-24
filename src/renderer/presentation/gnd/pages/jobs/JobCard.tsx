@@ -34,9 +34,7 @@ export function JobCard({
         {layout === 'list' && badge}
       </span>
       {job.place && <span className="gnd-job-card-meta">{job.place}</span>}
-      <span className="gnd-job-card-meta">
-        {job.salary ?? 'Salary not published'}
-      </span>
+      {job.salary && <span className="gnd-job-card-meta">{job.salary}</span>}
       {note && <span className="gnd-note gnd-job-card-note">{note}</span>}
     </button>
   );

@@ -26,6 +26,37 @@ const unscoredReason: Record<string, string> = {
   NO_EXTRACTION: 'The listing hasn’t been read yet.',
 };
 
+/** Why there are no requirements yet, from what the listing record says. */
+export function listingNote(detail: {
+  extractionStatus: OpportunityDetail['extractionStatus'];
+  extraction: OpportunityDetail['extraction'];
+}): string {
+  switch (detail.extractionStatus) {
+    case 'no_verified_capture':
+      return 'This site didn’t let Kompas read the listing. Some sites ask visitors to prove they’re human, which Kompas can’t do for you. Open the listing to read it there.';
+    case 'missing':
+      return 'Waiting for local AI to read this listing. It runs in the background, after your CV.';
+    case 'running':
+      return 'Local AI is reading this listing now.';
+    case 'failed':
+      switch (detail.extraction?.errorCode) {
+        case 'MODEL_UNAVAILABLE':
+          return 'Local AI isn’t set up, so this listing couldn’t be read. Set it up in Settings.';
+        case 'NOT_JOB_DESCRIPTION':
+          return 'The page at this link didn’t look like a job description.';
+        case 'DEADLINE_REACHED':
+        case 'RESOURCE_LIMIT':
+          return 'This listing was too long for local AI to read in time.';
+        default:
+          return 'Local AI couldn’t read this listing.';
+      }
+    default:
+      return 'Requirements appear here once local AI has read the listing.';
+  }
+}
+
+const POSTING_PREVIEW = 900;
+
 export function JobDetail({
   opportunityId,
   onBack,
@@ -87,7 +118,7 @@ export function JobDetail({
   const tiles: Array<[string, string | null | undefined]> = [
     ['Location', jd?.location?.text ?? detail.location],
     ['Work setup', jd?.workArrangement?.text],
-    ['Salary', jd?.salaryText?.text ?? 'Not published'],
+    ['Salary', jd?.salaryText?.text],
     ['Employment type', jd?.employmentType?.text],
   ];
 
@@ -168,12 +199,15 @@ export function JobDetail({
 
       <div className="gnd-job-detail-top">
         <dl className="gnd-job-tiles">
-          {tiles.map(([label, value]) => (
-            <div key={label} className="gnd-job-tile">
-              <dt>{label}</dt>
-              <dd>{value?.trim() || 'Not stated'}</dd>
-            </div>
-          ))}
+          {/* Only what the listing actually says; unknowns are left out. */}
+          {tiles
+            .filter(([, value]) => value?.trim())
+            .map(([label, value]) => (
+              <div key={label} className="gnd-job-tile">
+                <dt>{label}</dt>
+                <dd>{value!.trim()}</dd>
+              </div>
+            ))}
         </dl>
 
         <div className="gnd-match-card" aria-live="polite">
@@ -210,7 +244,9 @@ export function JobDetail({
                 <span>Not scored yet</span>
               </p>
               <p className="gnd-match-caption">
-                {unscoredReason[detail.match?.reason ?? 'NO_EXTRACTION']}
+                {(detail.match?.reason ?? 'NO_EXTRACTION') === 'NO_EXTRACTION'
+                  ? listingNote(detail)
+                  : unscoredReason[detail.match!.reason!]}
               </p>
             </>
           )}
@@ -246,14 +282,17 @@ export function JobDetail({
               )}
             </ul>
           ) : (
-            <p className="gnd-muted">
-              Requirements appear here once local AI has read the listing.
+            <p className="gnd-muted" data-testid="gnd-listing-note">
+              {listingNote(detail)}
             </p>
           )}
         </div>
 
         <div className="gnd-job-panel">
           {about && <p className="gnd-job-about">{about}</p>}
+          {!about && detail.postingText && (
+            <PostingText text={detail.postingText} />
+          )}
           <p className="gnd-job-reassure">
             Not in your profile doesn’t mean you haven’t done it. Add the skills
             you have, and the match updates.
@@ -368,5 +407,28 @@ function BackLink({ onBack }: { onBack: () => void }) {
     <button type="button" className="gnd-link gnd-back" onClick={onBack}>
       <ArrowLeft aria-hidden="true" /> All roles
     </button>
+  );
+}
+
+/** The listing's own text, when it was read but not yet understood. */
+function PostingText({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const long = text.length > POSTING_PREVIEW;
+  return (
+    <div className="gnd-job-posting">
+      <h2 className="gnd-job-posting-title">From the listing</h2>
+      <p>
+        {open || !long ? text : `${text.slice(0, POSTING_PREVIEW).trim()}…`}
+      </p>
+      {long && (
+        <button
+          type="button"
+          className="gnd-link"
+          onClick={() => setOpen(!open)}
+        >
+          {open ? 'Show less' : 'Show the full listing'}
+        </button>
+      )}
+    </div>
   );
 }

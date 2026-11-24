@@ -150,7 +150,9 @@
   border: 1px solid transparent;
   border-radius: 16px;
   padding: 21px 21px 22px;
-  background: var(--surface-card);
+  /* Solid white so cards read as active over the colour fields. */
+  background: var(--surface-raised);
+  box-shadow: 0 1px 2px #24251f0a;
   font: inherit;
   text-align: left;
   color: var(--text-primary);
